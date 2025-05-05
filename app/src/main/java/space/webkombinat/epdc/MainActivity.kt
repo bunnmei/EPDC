@@ -70,6 +70,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import space.webkombinat.epdc.Model.BottomNavigation
 import space.webkombinat.epdc.Model.ColorSet
 import space.webkombinat.epdc.Model.Controller.ACTION_USB_PERMISSION
+import space.webkombinat.epdc.VIew.BottomFloatingButton
 import space.webkombinat.epdc.VIew.BottomNavigationBar
 import space.webkombinat.epdc.VIew.CanvasDraw.CanvasPreview
 import space.webkombinat.epdc.VIew.CanvasDraw.Canvas_rect
@@ -77,6 +78,7 @@ import space.webkombinat.epdc.VIew.CanvasDraw.Canvas_text
 import space.webkombinat.epdc.VIew.CanvasTab
 import space.webkombinat.epdc.VIew.EDPCanvas
 import space.webkombinat.epdc.VIew.OperateBottomSheet
+import space.webkombinat.epdc.VIew.OperateButtons
 import space.webkombinat.epdc.VIew.Receiver.SystemBroadcastReceiver
 import space.webkombinat.epdc.VIew.RectDataEditor
 import space.webkombinat.epdc.VIew.SideObjectList
@@ -179,166 +181,106 @@ class MainActivity : ComponentActivity() {
                                         drawerState = drawerState,
                                         click = {showBottomSheet.value = true},
                                         vm = canvasVM,
-                                    ){
-                                    CanvasTab(
-                                        tabList = tabList,
-                                        vm = canvasVM
-                                    )
-//                                  Edit Canvas Screen
-                                    EDPCanvas(
-                                        canvas_width = canvasWidth,
-                                        canvas_height = canvasHeight,
-                                        mask_width = maskSize,
-                                        top = false,
-                                        captureArea = captureArea,
-                                        indicator = true,
-                                        vm = canvasVM
                                     ) {
+                                        CanvasTab(
+                                            tabList = tabList,
+                                            vm = canvasVM
+                                        )
+//                                  Edit Canvas Screen
+                                        EDPCanvas(
+                                            canvas_width = canvasWidth,
+                                            canvas_height = canvasHeight,
+                                            mask_width = maskSize,
+                                            top = false,
+                                            captureArea = captureArea,
+                                            indicator = true,
+                                            vm = canvasVM
+                                        ) {
 //                                        drawCircle(
 //                                            color = Color.Red,
 //                                            radius = 200f,
 //                                            center = Offset(x = 0f, y = 0f),
 //                                            style = Stroke(width = 5f)
 //                                        )
-                                        canvasVM.text_items.forEach { item ->
-                                            if(canvasVM.uiState.value.selectTab == item.colorMode) {
-                                                when(item.colorMode){
-                                                    ColorMode.Black -> {
-                                                        Canvas_text(
-                                                            textMeasurer = textMeasurer,
-                                                            item = item
-                                                        )
+                                            canvasVM.text_items.forEach { item ->
+                                                if (canvasVM.uiState.value.selectTab == item.colorMode) {
+                                                    when (item.colorMode) {
+                                                        ColorMode.Black -> {
+                                                            Canvas_text(
+                                                                textMeasurer = textMeasurer,
+                                                                item = item
+                                                            )
+                                                        }
+
+                                                        ColorMode.Red -> {
+                                                            Canvas_text(
+                                                                textMeasurer = textMeasurer2,
+                                                                item = item
+                                                            )
+                                                        }
                                                     }
-                                                    ColorMode.Red -> {
-                                                        Canvas_text(
-                                                            textMeasurer = textMeasurer2,
-                                                            item = item
-                                                        )
+                                                }
+                                            }
+
+                                            canvasVM.rect_items.forEach { item ->
+                                                if (canvasVM.uiState.value.selectTab == item.colorMode) {
+                                                    when (item.colorMode) {
+                                                        ColorMode.Black -> {
+                                                            Canvas_rect(
+                                                                item = item
+                                                            )
+                                                        }
+
+                                                        ColorMode.Red -> {
+                                                            Canvas_rect(
+                                                                item = item
+                                                            )
+                                                        }
                                                     }
                                                 }
                                             }
                                         }
-
-                                        canvasVM.rect_items.forEach { item ->
-                                            if(canvasVM.uiState.value.selectTab == item.colorMode) {
-                                                when (item.colorMode) {
-                                                    ColorMode.Black -> {
-                                                        Canvas_rect(
-                                                            item = item
-                                                        )
-                                                    }
-
-                                                    ColorMode.Red -> {
-                                                        Canvas_rect(
-                                                            item = item
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    // 296 * 128 EDPPreview
-                                    EDPCanvas(
-                                        canvas_width = canvasWidth,
-                                        canvas_height = canvasHeight,
-                                        mask_width = maskSize,
-                                        top = true,
-                                        vm = canvasVM
-                                    ) {
-                                        tabList.forEach { item ->
-                                            when(item) {
-                                                ColorMode.Black -> {
-                                                    CanvasPreview(
-                                                        list = canvasVM.black_previewPixelList,
-                                                        vm = canvasVM,
-                                                        color = item.color
-                                                    )
-                                                }
-                                                ColorMode.Red -> {
-                                                    CanvasPreview(
-                                                        list = canvasVM.red_previewPixelList,
-                                                        vm = canvasVM,
-                                                        color = item.color
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    Row(
-                                        modifier = Modifier.height(66.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Button(
-                                            onClick = {
-                                                captureArea.value?.let { rect ->
-                                                    canvasVM.convert(
-                                                        rect = rect,
-                                                        bitmap = view.drawToBitmap(),
-                                                    )
-                                                }
-                                            },
-                                            contentPadding = PaddingValues(0.dp),
-                                            modifier = Modifier
-                                                .width(50.dp)
-                                                .height(50.dp)
+                                        // 296 * 128 EDPPreview
+                                        EDPCanvas(
+                                            canvas_width = canvasWidth,
+                                            canvas_height = canvasHeight,
+                                            mask_width = maskSize,
+                                            top = true,
+                                            vm = canvasVM
                                         ) {
-                                            Icon(
-                                                imageVector = Icons.Filled.Scanner,
-                                                contentDescription = "convert canvas to bitmap"
-                                            )
+                                            tabList.forEach { item ->
+                                                when (item) {
+                                                    ColorMode.Black -> {
+                                                        CanvasPreview(
+                                                            list = canvasVM.black_previewPixelList,
+                                                            vm = canvasVM,
+                                                            color = item.color
+                                                        )
+                                                    }
+
+                                                    ColorMode.Red -> {
+                                                        CanvasPreview(
+                                                            list = canvasVM.red_previewPixelList,
+                                                            vm = canvasVM,
+                                                            color = item.color
+                                                        )
+                                                    }
+                                                }
+                                            }
                                         }
 
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        if(canvasVM.usbController.connected.value == false) {
-                                            Button(
-                                                onClick = {
-                                                    canvasVM.usbConnectionSetup(ctx = ctx)
-                                                },
-                                                contentPadding = PaddingValues(0.dp),
-                                                modifier = Modifier
-                                                    .width(50.dp)
-                                                    .height(50.dp)
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Filled.UsbOff,
-                                                    contentDescription = "usb setup"
-                                                )
-                                            }
-                                        } else {
-                                            Button(
-                                                onClick = {
-                                                    canvasVM.usbDataTransfer()
-                                                },
-                                                contentPadding = PaddingValues(0.dp),
-                                                modifier = Modifier
-                                                    .width(50.dp)
-                                                    .height(50.dp)
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Filled.Usb,
-                                                    contentDescription = "usb setup"
+                                        OperateButtons(vm = canvasVM) {
+                                            captureArea.value?.let { rect ->
+                                                canvasVM.convert(
+                                                    rect = rect,
+                                                    bitmap = view.drawToBitmap(),
                                                 )
                                             }
                                         }
-                                    }
-                                    Spacer(modifier = Modifier.weight(1f))
-                                    Row {
                                         Spacer(modifier = Modifier.weight(1f))
-                                        FloatingActionButton(
-                                            onClick = {
-                                                addOpenDialog.value = true
-                                            }
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.Add,
-                                                contentDescription = "add object"
-                                            )
+                                        BottomFloatingButton {
+                                            addOpenDialog.value = true
                                         }
-                                        Spacer(modifier = Modifier.width(16.dp))
-                                    }
-                                        Spacer(modifier = Modifier.height(16.dp))
                                     }
                                 }
                                 if (addOpenDialog.value) {

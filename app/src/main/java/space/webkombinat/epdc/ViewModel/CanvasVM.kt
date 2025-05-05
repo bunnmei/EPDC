@@ -47,11 +47,6 @@ class CanvasVM @Inject constructor(
         val selectTab: ColorMode = ColorMode.Black
     )
 
-    fun printHiltVM(){
-        println("HiltでinjectされたVMの関数が呼ばれたよ")
-        canvasManager.printScreenSize()
-    }
-
     fun setTabMode(mode: ColorMode) {
         _uiState.value = _uiState.value.copy(selectTab = mode)
     }
@@ -65,7 +60,6 @@ class CanvasVM @Inject constructor(
         ) / 2
         return Triple(canvasWidth, canvasHeight, maskSize)
     }
-
 
     fun usbCommunicationSetup(){
         usbController.setup()
@@ -83,25 +77,6 @@ class CanvasVM @Inject constructor(
                 usbController.transferData(transferDataByte_red)
             }
         }
-    }
-
-    fun convert_r(bitmap: Bitmap, rect: Rect): Bitmap {
-        println("Red convet")
-        val newBitmap = Bitmap.createBitmap(
-            bitmap,
-            rect.left,
-            rect.top,
-            rect.width(),
-            rect.height()
-        )
-        println("newBitmap width = ${newBitmap.width} height = ${newBitmap.height}")
-        red_previewPixelList.clear()
-        viewModelScope.launch {
-            val hoge = canvasManager.bitmapToHexList(bitmap = newBitmap)
-            println("hoge length ${hoge.size}")
-            red_previewPixelList.addAll(hoge)
-        }
-        return newBitmap
     }
 
     fun convert(bitmap: Bitmap, rect: Rect) {
@@ -160,15 +135,20 @@ class CanvasVM @Inject constructor(
         println("change id ${num}")
 
     }
+
     fun remove_text(selectId: Int) {
         val fined = text_items.removeIf { item -> item.id == selectId }
         if (fined) {
-          operate_data_id.value = text_items.size - 1
+            val length = text_items.size-1
+            if (length >= 0){
+                operate_data_id.value = length
+            }
             operate_data_type.value = OperateType.Text
         } else {
             println("見つからなかったよ ${selectId}")
         }
     }
+
     fun add_text() {
         item_count++
 
@@ -191,7 +171,10 @@ class CanvasVM @Inject constructor(
     fun remove_rect(selectId: Int) {
         val fined = rect_items.removeIf { item -> item.id == selectId }
         if (fined) {
-            operate_data_id.value = rect_items.size - 1
+            val length = rect_items.size-1
+            if (length >= 0){
+                operate_data_id.value = length
+            }
             operate_data_type.value = OperateType.Rect
         } else {
             println("見つからなかったよ ${selectId}")
