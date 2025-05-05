@@ -1,0 +1,244 @@
+package space.webkombinat.epdc.ViewModel
+
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Rect
+import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
+import space.webkombinat.epdc.Model.CanvasObjects.RectData
+import space.webkombinat.epdc.Model.Controller.CanvasManager
+import space.webkombinat.epdc.Model.CanvasObjects.TextDate
+import space.webkombinat.epdc.Model.ColorSet
+import space.webkombinat.epdc.Model.Controller.UsbController
+import javax.inject.Inject
+
+@HiltViewModel
+class CanvasVM @Inject constructor(
+    val canvasManager: CanvasManager,
+    val usbController: UsbController
+): ViewModel() {
+    var item_count by mutableStateOf(0)
+    var operate_data_id = mutableStateOf(0)
+    var operate_data_type = mutableStateOf<OperateType>(OperateType.Text)
+    var text_items = mutableStateListOf<TextDate>()
+    var rect_items = mutableStateListOf<RectData>()
+    var black_previewPixelList =  mutableStateListOf<Int>()
+    var red_previewPixelList = mutableStateListOf<Int>()
+
+    fun printHiltVM(){
+        println("HiltでinjectされたVMの関数が呼ばれたよ")
+        canvasManager.printScreenSize()
+    }
+    fun usbCommunicationSetup(){
+        usbController.setup()
+    }
+    fun usbConnectionSetup(ctx: Context) {
+        usbController.getDevice(ctx = ctx)
+    }
+    fun usbDataTransfer() {
+        viewModelScope.launch {
+            if (black_previewPixelList.isNotEmpty()) {
+                val transferDataByte = canvasManager.listIntToByteArrayDirect(black_previewPixelList)
+                usbController.transferData(transferDataByte)
+                val convertZeroToOne = canvasManager.redZeroToOne(red_previewPixelList)
+                val transferDataByte_red = canvasManager.listIntToByteArrayDirect(convertZeroToOne)
+                usbController.transferData(transferDataByte_red)
+            }
+        }
+    }
+
+    fun convert_r(bitmap: Bitmap, rect: Rect): Bitmap {
+        println("Red convet")
+        val newBitmap = Bitmap.createBitmap(
+            bitmap,
+            rect.left,
+            rect.top,
+            rect.width(),
+            rect.height()
+        )
+        println("newBitmap width = ${newBitmap.width} height = ${newBitmap.height}")
+        red_previewPixelList.clear()
+        viewModelScope.launch {
+            val hoge = canvasManager.bitmapToHexList(bitmap = newBitmap)
+            println("hoge length ${hoge.size}")
+            red_previewPixelList.addAll(hoge)
+        }
+        return newBitmap
+    }
+
+    fun convert(bitmap: Bitmap, rect: Rect) {
+        val newBitmap = Bitmap.createBitmap(
+                bitmap,
+                rect.left,
+                rect.top,
+                rect.width(),
+                rect.height()
+        )
+        println("newBitmap width = ${newBitmap.width} height = ${newBitmap.height}")
+        black_previewPixelList.clear()
+        viewModelScope.launch {
+            val hoge = canvasManager.bitmapToHexList(bitmap = newBitmap)
+            println("hoge length ${hoge.size}")
+            black_previewPixelList.addAll(hoge)
+        }
+    }
+
+    fun change(num: Int) {
+        println("change id ${num}")
+        val i = text_items.indexOfFirst{ it.id == num }
+            println("i == ${i} , ${num}")
+        if (i >= 0) {
+            operate_data_id.value = i+1
+        } else {
+            println("存在しない要素がおされたよ ${num}")
+        }
+
+    }
+    fun remove_text(selectId: Int) {
+        val fined = text_items.removeIf { item -> item.id == selectId }
+        if (fined) {
+          operate_data_id.value = text_items.size - 1
+        } else {
+            println("見つからなかったよ ${selectId}")
+        }
+    }
+    fun add_text(selectTab: Int) {
+        item_count++
+
+        var newText = TextDate(
+            id = item_count,
+            text = "dammy",
+            x = 0,
+            y = 0,
+            fontSize = 50,
+            color = if (selectTab == 1) { Color.Black} else { Color.Red },
+            fontWeight = 300,
+            colorId = selectTab
+        )
+        text_items.add(newText)
+//        println("last = ${text_items.lastIndex}")
+        operate_data_type.value = OperateType.Text
+        operate_data_id.value = text_items.size
+    }
+
+    fun add_rect(selectTab: Int) {
+        item_count++
+        val newRect = RectData(
+            id = item_count,
+            x = 0,
+            y = 0,
+            size_h = 50,
+            size_w = 50,
+            degree = 0,
+            color = if (selectTab == 1) { Color.Black} else { Color.Red },
+            colorId = selectTab
+        )
+        rect_items.add(newRect)
+        operate_data_type.value = OperateType.Rect
+        operate_data_id.value = rect_items.size
+    }
+    fun changeText(newText: String) {
+        val currentData = text_items[operate_data_id.value - 1]
+        val newData = currentData.copy(text = newText)
+        text_items[operate_data_id.value - 1] = newData
+    }
+
+    fun rect_parameter_update(
+        updateParameter: Rect_Parameter,
+        sign: Parameter_Sign
+    ) {
+        val currentData = rect_items[operate_data_id.value - 1]
+        val updateFunction: (Int) -> Int = when(sign) {
+            Parameter_Sign.Plus -> { value -> value + getIncrement_rect(updateParameter) }
+            Parameter_Sign.Minus -> { value -> value - getIncrement_rect(updateParameter) }
+        }
+        val newData = when (updateParameter) {
+            Rect_Parameter.X -> currentData.copy(x = updateFunction(currentData.x))
+            Rect_Parameter.Y -> currentData.copy(y = updateFunction(currentData.y))
+            Rect_Parameter.WIDTH -> currentData.copy(size_w = updateFunction(currentData.size_w))
+            Rect_Parameter.HEIGHT ->  currentData.copy(size_h = updateFunction(currentData.size_h))
+            Rect_Parameter.DEGREE -> currentData.copy(degree = updateFunction(currentData.degree))
+        }
+        rect_items[operate_data_id.value - 1] = newData
+    }
+
+    fun text_parameter_update(
+        updateParameter: Text_Parameter,
+        sign: Parameter_Sign
+    ) {
+        val currentData = text_items[operate_data_id.value - 1]
+        val updateFunction: (Int) -> Int = when (sign) {
+            Parameter_Sign.Plus -> { value -> value + getIncrement_text(updateParameter) }
+            Parameter_Sign.Minus -> { value -> value - getIncrement_text(updateParameter) }
+        }
+
+        val newData = when (updateParameter) {
+            Text_Parameter.Weight -> {
+                val newValue = updateFunction(currentData.fontWeight)
+                if (newValue in 200 .. 900) { // Weight範囲チェック
+                    currentData.copy(fontWeight = newValue)
+                } else {
+                    return
+                }
+            }
+            Text_Parameter.Size -> currentData.copy(fontSize = updateFunction(currentData.fontSize))
+            Text_Parameter.X -> currentData.copy(x = updateFunction(currentData.x))
+            Text_Parameter.Y -> currentData.copy(y = updateFunction(currentData.y))
+        }
+        text_items[operate_data_id.value - 1] = newData
+    }
+
+    private fun getIncrement_text(parameter: Text_Parameter): Int = when (parameter) {
+        Text_Parameter.Weight -> 100
+        Text_Parameter.Size -> 10
+        Text_Parameter.X -> 10
+        Text_Parameter.Y -> 10
+    }
+
+    private fun getIncrement_rect(parameter: Rect_Parameter): Int = when (parameter) {
+        Rect_Parameter.X -> 10
+        Rect_Parameter.Y -> 10
+        Rect_Parameter.WIDTH -> 10
+        Rect_Parameter.HEIGHT -> 10
+        Rect_Parameter.DEGREE -> 10
+    }
+
+
+    fun pxToDp(size: Int, ctx: Context): Int {
+        val density = ctx.resources.displayMetrics.density
+        return(size / density).toInt()
+    }
+}
+
+enum class OperateType {
+    Text,
+    Rect
+}
+
+enum class Text_Parameter {
+    X,
+    Y,
+    Size,
+    Weight,
+}
+
+enum class Rect_Parameter {
+    X,
+    Y,
+    WIDTH,
+    HEIGHT,
+    DEGREE
+}
+
+enum class Parameter_Sign {
+    Plus,
+    Minus
+}
