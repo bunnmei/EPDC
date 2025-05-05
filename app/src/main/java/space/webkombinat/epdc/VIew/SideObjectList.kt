@@ -33,6 +33,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.core.content.pm.ShortcutInfoCompat.Surface
 import space.webkombinat.epdc.ViewModel.CanvasVM
+import space.webkombinat.epdc.ViewModel.ColorMode
 
 @Composable
 fun SideObjectList(
@@ -67,7 +68,7 @@ fun SideObjectList(
 //            modifier = modifier.fillMaxSize(fraction = 0.8f),
             modifier = Modifier.align(Alignment.CenterEnd),
             visible = drawerState.value,
-            enter = slideInHorizontally(initialOffsetX = { it}),
+            enter = slideInHorizontally(initialOffsetX = { it }),
             exit = slideOutHorizontally(targetOffsetX = { it })
         ) {
             Surface(
@@ -75,59 +76,20 @@ fun SideObjectList(
                     .fillMaxWidth(fraction = 0.8f)
                     .fillMaxHeight()
                     .align(Alignment.CenterEnd), // 右端に配置
-//                color = MaterialTheme.colorScheme.surface,
                 tonalElevation = 16.dp
             ) {
-                ObjectAccordion()
-//                LazyColumn {
-//                    itemsIndexed(vm.text_items) { index,item ->
-//                        Row(
-//                            modifier = modifier.fillMaxWidth()
-//                                .height(60.dp)
-//                                .combinedClickable(
-//                                    onClick = {
-//                                        drawerState.value = false
-//                                        vm.change(item.id)
-//                                        click()
-//                                    },
-//                                    onLongClick = {
-//                                        vm.remove_text(item.id)
-//                                    }
-//                                ),
-//                            verticalAlignment = Alignment.CenterVertically,
-//                            horizontalArrangement = Arrangement.Center
-//                        ) {
-//                            Box(
-//                                modifier = modifier.height(16.dp)
-//                                    .width(16.dp)
-//                                    .background(item.color)
-//                            )
-//                            Spacer(modifier = modifier.width(8.dp))
-//                            Text("${item.text} - ${item.id}")
-//                        }
-//                    }
-//                }
-
+                ObjectAccordion(vm = vm){ id, type, color ->
+                    if (color == Color.Black) {
+                        vm.setTabMode(ColorMode.Black)
+                    } else if(color == Color.Red) {
+                        vm.setTabMode(ColorMode.Red)
+                    }
+                    drawerState.value = false
+                    vm.change(id, type)
+                    click()
+                }
             }
         }
-
-        // Right-side Drawer
-//        AnimatedVisibility(
-//            visible = drawerState.value,
-//            enter = slideInHorizontally(initialOffsetX = { it }),
-//            exit = slideOutHorizontally(targetOffsetX = { it })
-//        ) {
-//            Surface(
-//                modifier = Modifier
-//                    .fillMaxHeight()
-//                    .width(300.dp)
-//                    .align(Alignment.CenterEnd), // 右端に配置
-//                color = MaterialTheme.colorScheme.surface,
-//                tonalElevation = 16.dp
-//            ) {
-//               Text("sidemenu")
-//            }
-//        }
     }
 }
 

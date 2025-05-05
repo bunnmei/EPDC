@@ -20,6 +20,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -47,6 +49,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import space.webkombinat.epdc.Model.ColorSet
 import space.webkombinat.epdc.ViewModel.CanvasVM
+import space.webkombinat.epdc.ViewModel.ColorMode
 
 @Composable
 fun EDPCanvas(
@@ -56,16 +59,17 @@ fun EDPCanvas(
     mask_width: Int,
     top: Boolean,
     captureArea: MutableState<Rect?>? = null,
-    indicator: Int? = null,
+    indicator: Boolean = false,
+    vm: CanvasVM,
     draw: DrawScope.() -> Unit
 ) {
-    val data = mask_width
     var canvasSize: Int
     if (top) {
-        canvasSize = (data+data+canvas_height)
+        canvasSize = (mask_width+mask_width+canvas_height)
     } else {
-        canvasSize = (data+canvas_height)
+        canvasSize = (mask_width+canvas_height)
     }
+    val uiState by vm.uiState.collectAsState()
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -86,13 +90,13 @@ fun EDPCanvas(
 
                         .width((canvas_width * 3).dp)
                         .height((canvas_height * 3).dp)
-                        .offset(x = data.dp, y = data.dp)
+                        .offset(x =  mask_width.dp, y =  mask_width.dp)
                         .background(Color.White.copy(0.0f))
-                        .drawWithContent() {
-                            draw()
-                        }
+//                        .drawWithContent() {
+//
+//                        }
                 ) {
-
+                    draw()
                 }
 
                 Column(
@@ -102,7 +106,7 @@ fun EDPCanvas(
                 ) {
                     Row(
                         modifier = modifier
-                            .height(data.dp)
+                            .height(mask_width.dp)
                             .fillMaxWidth()
                             .background(MaterialTheme.colorScheme.secondaryContainer)
                     ){}
@@ -110,16 +114,12 @@ fun EDPCanvas(
                         Row(
                             modifier = modifier
                                 .height(canvas_height.dp)
-                                .width(data.dp)
+                                .width(mask_width.dp)
                                 .background(
-                                    if (indicator == null) {
-                                        MaterialTheme.colorScheme.secondaryContainer
-                                    } else if (
-                                        indicator == 1
-                                    ) {
-                                        Color.Black
+                                    if (indicator) {
+                                        uiState.selectTab.color
                                     } else {
-                                        Color.Red
+                                        MaterialTheme.colorScheme.secondaryContainer
                                     }
                                 )
                         ){}
@@ -127,16 +127,9 @@ fun EDPCanvas(
                             modifier = modifier
                                 .height(canvas_height.dp)
                                 .width(canvas_width.dp)
-
                                 .onGloballyPositioned { layoutCoordinates ->
                                     val position = layoutCoordinates.positionInWindow()
                                     val size = layoutCoordinates.size.toSize()
-//                                    println("posi ${position} - size ${canvasSize}")
-//                                    if (captureArea == null) {
-//                                        println("captureArea がないよ")
-//                                    } else {
-//                                        println("captureArea あるよ")
-//                                    }
                                     println(" x ${position.x} y = ${position.y} x+w = ${position.x + size.width} y+h = ${position.y + size.height} ")
                                     captureArea?.value = Rect(
                                         position.x.toInt(),
@@ -150,14 +143,14 @@ fun EDPCanvas(
                         Row(
                             modifier = modifier
                                 .height(canvas_height.dp)
-                                .width(data.dp)
+                                .width(mask_width.dp)
                                 .background(MaterialTheme.colorScheme.secondaryContainer)
                         ){}
                     }
                     if(top) {
                         Row(
                             modifier = modifier
-                                .height(data.dp)
+                                .height(mask_width.dp)
                                 .fillMaxWidth()
                                 .background(MaterialTheme.colorScheme.secondaryContainer)
                         ){}

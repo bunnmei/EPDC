@@ -1,6 +1,7 @@
 package space.webkombinat.epdc.Model.CanvasObjects
 
 import androidx.compose.ui.graphics.Color
+import space.webkombinat.epdc.ViewModel.ColorMode
 
 data class RectData(
     val id: Int,
@@ -10,5 +11,5 @@ data class RectData(
     var size_h: Int,
     var degree: Int,
     var color: Color,
-    var colorId: Int
+    var colorMode: ColorMode
 )
