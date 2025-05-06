@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,13 +22,15 @@ import space.webkombinat.epdc.Model.CanvasObjects.RectData
 import space.webkombinat.epdc.Model.Controller.CanvasManager
 import space.webkombinat.epdc.Model.CanvasObjects.TextDate
 import space.webkombinat.epdc.Model.ColorSet
+import space.webkombinat.epdc.Model.Controller.FontFolderReader
 import space.webkombinat.epdc.Model.Controller.UsbController
 import javax.inject.Inject
 
 @HiltViewModel
 class CanvasVM @Inject constructor(
     val canvasManager: CanvasManager,
-    val usbController: UsbController
+    val usbController: UsbController,
+    val fontFolderReader: FontFolderReader
 ): ViewModel() {
     var item_count by mutableStateOf(0)
 
@@ -47,9 +50,12 @@ class CanvasVM @Inject constructor(
         val selectTab: ColorMode = ColorMode.Black
     )
 
+
+
     fun setTabMode(mode: ColorMode) {
         _uiState.value = _uiState.value.copy(selectTab = mode)
     }
+
 
     fun getScreenSize(ctx: Context): Triple<Int, Int, Int>{
         val canvasWidth = pxToDp(canvasManager.virual_EPD_W, ctx)
@@ -140,8 +146,11 @@ class CanvasVM @Inject constructor(
         val fined = text_items.removeIf { item -> item.id == selectId }
         if (fined) {
             val length = text_items.size-1
-            if (length >= 0){
+            println("#${length}")
+            if (length > 0){
                 operate_data_id.value = length
+            } else {
+                operate_data_id.value = 1
             }
             operate_data_type.value = OperateType.Text
         } else {
@@ -151,7 +160,6 @@ class CanvasVM @Inject constructor(
 
     fun add_text() {
         item_count++
-
         var newText = TextDate(
             id = item_count,
             text = "dammy",
@@ -160,6 +168,7 @@ class CanvasVM @Inject constructor(
             fontSize = 50,
             color = _uiState.value.selectTab.color,
             fontWeight = 300,
+            fontFamily = FontFamily.Default,
             colorMode = _uiState.value.selectTab
         )
         text_items.add(newText)
@@ -168,12 +177,32 @@ class CanvasVM @Inject constructor(
         operate_data_id.value = text_items.size
     }
 
+    fun fontListGet(ctx: Context) {
+        fontFolderReader.FontFolderReload(ctx = ctx)
+    }
+    fun changeFont(ctx: Context, fontName: String) {
+        val currentData = text_items[operate_data_id.value - 1]
+        val findFont = fontFolderReader.font_list.find { it == fontName }
+        val fontFamily = when (findFont) {
+            FontFamily.Default.toString() -> FontFamily.Default
+            FontFamily.Monospace.toString() -> FontFamily.Monospace
+            FontFamily.Serif.toString() -> FontFamily.Serif
+            FontFamily.SansSerif.toString() -> FontFamily.SansSerif
+            FontFamily.Cursive.toString() -> FontFamily.Cursive
+            else -> fontFolderReader.getFontFamily(ctx = ctx, fileName = fontName)
+        }
+        val newData = currentData.copy(fontFamily = fontFamily)
+        text_items[operate_data_id.value - 1] = newData
+    }
     fun remove_rect(selectId: Int) {
         val fined = rect_items.removeIf { item -> item.id == selectId }
         if (fined) {
             val length = rect_items.size-1
-            if (length >= 0){
+            println("#${length}")
+            if (length > 0){
                 operate_data_id.value = length
+            } else {
+                operate_data_id.value = 1
             }
             operate_data_type.value = OperateType.Rect
         } else {

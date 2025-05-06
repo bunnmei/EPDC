@@ -54,10 +54,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.drawToBitmap
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -187,6 +190,7 @@ class MainActivity : ComponentActivity() {
                                             vm = canvasVM
                                         )
 //                                  Edit Canvas Screen
+//                                        val font = FontFamily(Font(R.font.heaby))
                                         EDPCanvas(
                                             canvas_width = canvasWidth,
                                             canvas_height = canvasHeight,
@@ -342,7 +346,6 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
                                 }
-
 
                                 OperateBottomSheet(
                                     showBottomSheet = showBottomSheet

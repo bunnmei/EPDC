@@ -7,6 +7,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import android.content.Context
 import space.webkombinat.epdc.Model.Controller.CanvasManager
+import space.webkombinat.epdc.Model.Controller.FontFolderReader
 import space.webkombinat.epdc.Model.Controller.UsbController
 
 @Module
@@ -27,5 +28,12 @@ object AppModule{
     @Provides
     fun provideUsbController(): UsbController {
         return UsbController()
+    }
+
+    @Provides
+    fun provideFontFolderReader(@ApplicationContext context: Context): FontFolderReader {
+        val fontFolderReader: FontFolderReader = FontFolderReader()
+        fontFolderReader.createFontFolder(ctx = context)
+        return fontFolderReader
     }
 }

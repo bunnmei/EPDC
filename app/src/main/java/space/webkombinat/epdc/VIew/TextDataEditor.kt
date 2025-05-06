@@ -105,6 +105,8 @@ fun TextDataEditor(
             }
         )
 
+        FontDropDownMenu(vm = vm)
+
     }
 }
 
