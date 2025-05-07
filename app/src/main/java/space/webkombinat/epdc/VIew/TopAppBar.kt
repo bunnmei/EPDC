@@ -17,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,15 +25,17 @@ import androidx.compose.ui.modifier.ModifierLocalModifierNode
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import space.webkombinat.epdc.ViewModel.CanvasVM
+import space.webkombinat.epdc.ViewModel.ColorMode
 import space.webkombinat.epdc.ViewModel.OperateType
 
 @Composable
 fun TopAppBar(
     modifier: Modifier = Modifier,
     click: () -> Unit,
-    click_s: (Color) -> Unit,
+    click2: () -> Unit,
     vm: CanvasVM
 ) {
+    val uiState = vm.uiState.collectAsState()
     Row(
         modifier = modifier.fillMaxWidth()
             .height(60.dp),
@@ -43,11 +46,16 @@ fun TopAppBar(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                if (OperateType.Text == vm.operate_data_type.value && vm.text_items.isNotEmpty()) {
-                    val obj = vm.text_items[vm.operate_data_id.value-1]
+                if (OperateType.Text == uiState.value.operateType && uiState.value.textItems.isNotEmpty()) {
+                    val obj = uiState.value.textItems[uiState.value.operateIndex-1]
                     Row (
                         modifier = modifier.fillMaxSize().clickable{
-                            click_s(obj.color)
+                            if (obj.colorMode.color == Color.Black) {
+                                vm.setTabMode(ColorMode.Black)
+                            } else if(obj.colorMode.color == Color.Red) {
+                                vm.setTabMode(ColorMode.Red)
+                            }
+                            click2()
                         },
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
@@ -57,11 +65,16 @@ fun TopAppBar(
                         )
                     }
 
-                } else if (OperateType.Rect == vm.operate_data_type.value && vm.rect_items.isNotEmpty()) {
-                    val obj = vm.rect_items[vm.operate_data_id.value-1]
+                } else if (OperateType.Rect == uiState.value.operateType && uiState.value.rectItems.isNotEmpty()) {
+                    val obj = uiState.value.rectItems[uiState.value.operateIndex-1]
                     Row (
                         modifier = modifier.fillMaxSize().clickable{
-                            click_s(obj.color)
+                            if (obj.colorMode.color == Color.Black) {
+                                vm.setTabMode(ColorMode.Black)
+                            } else if(obj.colorMode.color == Color.Red) {
+                                vm.setTabMode(ColorMode.Red)
+                            }
+                            click2()
                         },
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
@@ -69,7 +82,7 @@ fun TopAppBar(
                         Box(
                             modifier = modifier.height(16.dp)
                                 .width(16.dp)
-                                .background(obj.color)
+                                .background(obj.colorMode.color)
                         )
                         Spacer(modifier = modifier.width(8.dp))
                         Text("Rect - ${obj.id}")

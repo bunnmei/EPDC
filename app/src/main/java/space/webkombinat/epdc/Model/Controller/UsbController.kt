@@ -17,9 +17,7 @@ val ACTION_USB_PERMISSION = "hogehoge"
 class UsbController {
 
     var connected = mutableStateOf(false)
-    var transferState = mutableStateOf(false)
 
-    var counter = 0
     var usbManager: UsbManager? = null
     var device: UsbDevice? = null
     var thread: Thread? = null
@@ -44,18 +42,11 @@ class UsbController {
         return false
     }
     fun transferData(array: ByteArray){
-//        currentStatePrint()
         println("data transferが呼び出されたよ")
-//        if (transferState.value && status()){
-//            return
-//        }
-//        transferState.value = true
-        println("array size ${array.size}")
         val packet_size_max = 64
         val time_out = 1000
 
         processByteArrayInBulk(array, bulkSize = packet_size_max) { bulk ->
-//            println("trasfer data ${bulk}")
             val ret =  connection?.bulkTransfer(endpointOut, bulk, bulk.size, time_out)
             if (ret != null) {
                 if(ret < 0){
@@ -88,24 +79,6 @@ class UsbController {
         connection = usbManager!!.openDevice(device)
         connection!!.claimInterface(interFace!!, true)
         connected.value = true
-//        thread = Thread( Runnable {
-//            var onoff = true
-//            while (true) {
-//                var data = if (onoff) {"on".toByteArray() } else { "off".toByteArray() }
-//                onoff = !onoff
-//                connection?.bulkTransfer(endpointOut, data, data.size, 1000)
-////                Thread.sleep(1000)
-////                val buffer = ByteArray(64)
-////                val byteRead = connection.bulkTransfer(
-////                    endpointOut, buffer, buffer.size, 5000)
-////                if (byteRead > 0) {
-////                    val seri = String(buffer,0, byteRead)
-////                    println(seri)
-////                }
-//            }
-//
-//        })
-//        thread!!.start()
     }
 
     fun processByteArrayInBulk(byteArray: ByteArray, bulkSize: Int = 64, processBulk: (ByteArray) -> Unit) {
@@ -138,6 +111,5 @@ class UsbController {
         println("device: ${device}")
         println("usbManager: ${usbManager}")
         println("thread: ${thread}")
-        println("transferState.value ${transferState.value}")
     }
 }

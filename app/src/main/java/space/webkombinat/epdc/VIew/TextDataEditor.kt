@@ -20,6 +20,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,24 +35,24 @@ fun TextDataEditor(
     modifier: Modifier = Modifier,
     vm: CanvasVM
 ) {
-
-    val cData = vm.text_items[vm.operate_data_id.value-1]
+    val uiState by vm.uiState.collectAsState()
+    val cData = uiState.textItems[uiState.operateIndex-1]
     Column {
         Text_Parameter(
             text = cData.text
         ) { newText ->
-            vm.changeText(newText)
+            vm.updateText(newText)
         }
         Parameter(
             text = "Offset X = ${cData.x}",
             clickMinus = {
-                vm.text_parameter_update(
+                vm.textParameterUpdate(
                     updateParameter = Text_Parameter.X,
                     sign = Parameter_Sign.Minus
                 )
             },
             clickPlus = {
-                vm.text_parameter_update(
+                vm.textParameterUpdate(
                     updateParameter = Text_Parameter.X,
                     sign = Parameter_Sign.Plus
                 )
@@ -60,13 +62,13 @@ fun TextDataEditor(
         Parameter(
             text = "Offset Y = ${cData.y}",
             clickMinus = {
-                vm.text_parameter_update(
+                vm.textParameterUpdate(
                     updateParameter = Text_Parameter.Y,
                     sign = Parameter_Sign.Minus
                 )
             },
             clickPlus = {
-                vm.text_parameter_update(
+                vm.textParameterUpdate(
                     updateParameter = Text_Parameter.Y,
                     sign = Parameter_Sign.Plus
                 )
@@ -76,13 +78,13 @@ fun TextDataEditor(
         Parameter(
             text = "Font Size = ${cData.fontSize}",
             clickMinus = {
-                vm.text_parameter_update(
+                vm.textParameterUpdate(
                     updateParameter = Text_Parameter.Size,
                     sign = Parameter_Sign.Minus
                 )
             },
             clickPlus = {
-                vm.text_parameter_update(
+                vm.textParameterUpdate(
                     updateParameter = Text_Parameter.Size,
                     sign = Parameter_Sign.Plus
                 )
@@ -92,13 +94,13 @@ fun TextDataEditor(
         Parameter(
             text = "Font Weight = ${cData.fontWeight}",
             clickMinus = {
-                vm.text_parameter_update(
+                vm.textParameterUpdate(
                     updateParameter = Text_Parameter.Weight,
                     sign = Parameter_Sign.Minus
                 )
             },
             clickPlus = {
-                vm.text_parameter_update(
+                vm.textParameterUpdate(
                     updateParameter = Text_Parameter.Weight,
                     sign = Parameter_Sign.Plus
                 )

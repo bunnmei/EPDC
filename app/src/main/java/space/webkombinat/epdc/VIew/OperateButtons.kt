@@ -47,7 +47,7 @@ fun OperateButtons(
             BasicButton(
                 icon = Pair(Icons.Filled.Usb, "usb data transfer"),
                 click = {vm.usbDataTransfer()},
-                enabled = !vm.usbController.transferState.value
+                enabled = vm.usbButtonState.value
             )
         }
 
@@ -58,7 +58,8 @@ fun OperateButtons(
 
         BasicButton(
             icon = Pair(Icons.Default.DocumentScanner, "convert to 296*128"),
-            click = {click()}
+            click = {click()},
+            enabled = vm.convertButtonState.value
         )
     }
 }

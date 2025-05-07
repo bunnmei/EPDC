@@ -1,5 +1,6 @@
 package space.webkombinat.epdc.VIew.CanvasDraw
 
+import android.content.Context
 import androidx.compose.runtime.Composable
 
 //import androidx.compose.runtime.R
@@ -13,11 +14,14 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import space.webkombinat.epdc.Model.CanvasObjects.TextDate
+import space.webkombinat.epdc.ViewModel.CanvasVM
 
 
 fun DrawScope.Canvas_text(
     textMeasurer: TextMeasurer,
-    item: TextDate
+    item: TextDate,
+    vm: CanvasVM,
+    ctx: Context,
 ) {
 //    val font = R.font.heavy_ver8
     drawText(
@@ -26,8 +30,8 @@ fun DrawScope.Canvas_text(
         style = TextStyle(
             fontSize = item.fontSize.sp,
             fontWeight = FontWeight(item.fontWeight),
-            color = item.color,
-            fontFamily = item.fontFamily
+            color = item.colorMode.color,
+            fontFamily = vm.getFont(ctx = ctx, fontName = item.fontFamily)
 //            fontFamily = FontFamily.Monospace
         ),
         topLeft = Offset(

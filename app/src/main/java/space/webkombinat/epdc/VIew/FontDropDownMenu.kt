@@ -15,6 +15,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,7 +33,7 @@ fun FontDropDownMenu(
 ) {
     var expanded by remember { mutableStateOf(false) }
     val ctx = LocalContext.current
-
+    val uiState by vm.uiState.collectAsState()
     Row(
         modifier = Modifier.fillMaxWidth()
             .height(66.dp),
@@ -40,9 +41,9 @@ fun FontDropDownMenu(
         horizontalArrangement = Arrangement.Center
 
     ) {
-        Text("${vm.text_items[vm.operate_data_id.value-1].fontFamily}")
+        Text(uiState.textItems[uiState.operateIndex-1].fontFamily)
         IconButton(onClick = {
-            vm.fontListGet(ctx = ctx)
+//            vm.fontListGet(ctx = ctx)
             println("font size ${vm.fontFolderReader.font_list.size}")
             expanded = !expanded
         }) {

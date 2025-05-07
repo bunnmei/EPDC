@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+
+    id("kotlin-parcelize")
 } //buildプロセスの拡張
 
 android {
@@ -75,4 +77,6 @@ dependencies {
     ksp(libs.room.compiler)
 
     implementation (libs.androidx.datastore.preferences)
+
+    implementation(libs.lifecycle.viewmodel.savedstate)
 }

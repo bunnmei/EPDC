@@ -16,7 +16,7 @@ fun DrawScope.Canvas_rect(
         pivot = pivot
     ) {
         drawRect(
-            color = item.color,
+            color = item.colorMode.color,
             topLeft = Offset(x =item.x.toFloat(), y = item.y.toFloat()),
             size = Size(item.size_w.toFloat(), item.size_h.toFloat())
         )

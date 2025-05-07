@@ -86,7 +86,6 @@ fun SideObjectList(
                     } else if(color == Color.Red) {
                         vm.setTabMode(ColorMode.Red)
                     }
-                    drawerState.value = false
                     vm.change(id, type)
                     click()
                 }

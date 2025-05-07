@@ -38,6 +38,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -168,7 +169,7 @@ class MainActivity : ComponentActivity() {
                         composable(
                             route = BottomNavigation.Canvas.route
                         ){
-
+                            val uiState = canvasVM.uiState.collectAsState()
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -179,19 +180,18 @@ class MainActivity : ComponentActivity() {
                                         click = {
                                             drawerState.value = !drawerState.value
                                         },
-                                        click_s = { color ->
-                                            if (color == Color.Black) {
-                                                canvasVM.setTabMode(ColorMode.Black)
-                                            } else if(color == Color.Red) {
-                                                canvasVM.setTabMode(ColorMode.Red)
-                                            }
+                                        click2 = {
                                             showBottomSheet.value = true
+                                            drawerState.value = false
                                         },
                                         vm = canvasVM
                                     )
                                     SideObjectList(
                                         drawerState = drawerState,
-                                        click = {showBottomSheet.value = true},
+                                        click = {
+                                            showBottomSheet.value = true
+                                            drawerState.value = false
+                                                },
                                         vm = canvasVM,
                                     ) {
                                         CanvasTab(
@@ -218,27 +218,31 @@ class MainActivity : ComponentActivity() {
                                             drawRect(
                                                 color = Color.White
                                             )
-                                            canvasVM.text_items.forEach { item ->
-                                                if (canvasVM.uiState.value.selectTab == item.colorMode) {
+                                            uiState.value.textItems.forEach { item ->
+                                                if (uiState.value.selectTab == item.colorMode) {
                                                     when (item.colorMode) {
                                                         ColorMode.Black -> {
                                                             Canvas_text(
                                                                 textMeasurer = textMeasurer,
-                                                                item = item
+                                                                item = item,
+                                                                vm = canvasVM,
+                                                                ctx = ctx
                                                             )
                                                         }
 
                                                         ColorMode.Red -> {
                                                             Canvas_text(
                                                                 textMeasurer = textMeasurer2,
-                                                                item = item
+                                                                item = item,
+                                                                vm = canvasVM,
+                                                                ctx = ctx
                                                             )
                                                         }
                                                     }
                                                 }
                                             }
 
-                                            canvasVM.rect_items.forEach { item ->
+                                            uiState.value.rectItems.forEach { item ->
                                                 if (canvasVM.uiState.value.selectTab == item.colorMode) {
                                                     when (item.colorMode) {
                                                         ColorMode.Black -> {
@@ -327,7 +331,7 @@ class MainActivity : ComponentActivity() {
                                                     .background(Color.White)
                                                     .clickable {
                                                         addOpenDialog.value = false
-                                                        canvasVM.add_text()
+                                                        canvasVM.addText()
                                                         showBottomSheet.value = true
                                                     },
                                                 horizontalArrangement = Arrangement.Center,
@@ -346,7 +350,7 @@ class MainActivity : ComponentActivity() {
                                                     .background(Color.White)
                                                     .clickable {
                                                         addOpenDialog.value = false
-                                                        canvasVM.add_rect()
+                                                        canvasVM.addRect()
                                                         showBottomSheet.value = true
                                                     },
                                                 horizontalArrangement = Arrangement.Center,
@@ -365,13 +369,13 @@ class MainActivity : ComponentActivity() {
                                 OperateBottomSheet(
                                     showBottomSheet = showBottomSheet
                                 ) {
-                                    val mode = canvasVM.operate_data_type.value
-                                    if (canvasVM.text_items.isNotEmpty() && mode == OperateType.Text) {
+//                                    val mode = canvasVM.operate_data_type.value
+                                    if (uiState.value.textItems.isNotEmpty() && uiState.value.operateType == OperateType.Text) {
                                         TextDataEditor(
                                             vm = canvasVM
                                         )
                                     }
-                                    if (canvasVM.rect_items.isNotEmpty() && mode == OperateType.Rect) {
+                                    if (uiState.value.rectItems.isNotEmpty() && uiState.value.operateType == OperateType.Rect) {
                                         RectDataEditor(
                                             vm = canvasVM
                                         )

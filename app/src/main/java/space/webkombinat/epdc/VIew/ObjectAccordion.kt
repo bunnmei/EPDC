@@ -48,7 +48,7 @@ fun ObjectAccordion(
     vm: CanvasVM,
     click: (Int, OperateType, Color) -> Unit,
 ) {
-   val openList by vm.uiState.collectAsState()
+   val uiState by vm.uiState.collectAsState()
 
     BoxWithConstraints(modifier = modifier.background(Color.White)) {
         val maxWidthPx = with(LocalDensity.current) { maxWidth.toPx() }
@@ -73,7 +73,7 @@ fun ObjectAccordion(
                         Spacer(modifier = modifier.height(8.dp))
                         when (type) {
                             OperateType.Text -> {
-                                Text("${type.name}")
+                                Text(type.name)
                             }
                             OperateType.Rect -> {
                                 Spacer(modifier = modifier.height(8.dp))
@@ -84,7 +84,7 @@ fun ObjectAccordion(
                 }
 
                 AnimatedVisibility(
-                    visible = openList.selectSideList == type,
+                    visible = uiState.selectSideList == type,
                     enter = expandHorizontally(
                         animationSpec = tween(durationMillis = 150)
                     ),
@@ -97,16 +97,16 @@ fun ObjectAccordion(
                             .background(Color.White)
                     ) {
                         if (type == OperateType.Text) {
-                            itemsIndexed(vm.text_items) { index,item ->
+                            itemsIndexed(uiState.textItems) { index,item ->
                                 Row(
                                     modifier = modifier.fillMaxWidth()
                                         .height(60.dp)
                                         .combinedClickable(
                                             onClick = {
-                                                click(item.id, type, item.color)
+                                                click(item.id, type, item.colorMode.color)
                                             },
                                             onLongClick = {
-                                                vm.remove_text(item.id)
+                                                vm.removeText(item.id)
                                             }
                                         ),
                                     verticalAlignment = Alignment.CenterVertically,
@@ -115,24 +115,24 @@ fun ObjectAccordion(
                                     Text(
                                         text = "T",
                                         fontFamily = FontFamily.Serif,
-                                        color = item.color
-                                        )
+//                                        color = item.color
+                                    )
                                     Spacer(modifier = modifier.width(8.dp))
                                     Text("${item.text} - ${item.id}")
                                 }
                             }
                         }
                         if (type == OperateType.Rect) {
-                            itemsIndexed(vm.rect_items) { index,item ->
+                            itemsIndexed(uiState.rectItems) { index,item ->
                                 Row(
                                     modifier = modifier.fillMaxWidth()
                                         .height(60.dp)
                                         .combinedClickable(
                                             onClick = {
-                                                click(item.id, type, item.color)
+                                                click(item.id, type, item.colorMode.color)
                                             },
                                             onLongClick = {
-                                                vm.remove_rect(item.id)
+                                                vm.removeRect(item.id)
                                             }
                                         ),
                                     verticalAlignment = Alignment.CenterVertically,
@@ -141,7 +141,7 @@ fun ObjectAccordion(
                                     Box(
                                         modifier = modifier.height(16.dp)
                                             .width(16.dp)
-                                            .background(item.color)
+                                            .background(item.colorMode.color)
                                     )
                                     Spacer(modifier = modifier.width(8.dp))
                                     Text("Rect - ${item.id}")
