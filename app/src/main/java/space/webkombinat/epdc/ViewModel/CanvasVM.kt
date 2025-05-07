@@ -47,10 +47,13 @@ class CanvasVM @Inject constructor(
     var red_previewPixelList = mutableStateListOf<Int>()
 
     data class UiState(
-        val selectTab: ColorMode = ColorMode.Black
+        val selectTab: ColorMode = ColorMode.Black,
+        val selectSideList: OperateType = OperateType.Text
     )
 
-
+    fun set_openList(mode: OperateType) {
+        _uiState.value = _uiState.value.copy(selectSideList = mode)
+    }
 
     fun setTabMode(mode: ColorMode) {
         _uiState.value = _uiState.value.copy(selectTab = mode)
@@ -75,12 +78,28 @@ class CanvasVM @Inject constructor(
     }
     fun usbDataTransfer() {
         viewModelScope.launch {
-            if (black_previewPixelList.isNotEmpty()) {
+            if (black_previewPixelList.isNotEmpty() && red_previewPixelList.isNotEmpty()) {
                 val transferDataByte = canvasManager.listIntToByteArrayDirect(black_previewPixelList)
-                usbController.transferData(transferDataByte)
+
                 val convertZeroToOne = canvasManager.redZeroToOne(red_previewPixelList)
                 val transferDataByte_red = canvasManager.listIntToByteArrayDirect(convertZeroToOne)
-                usbController.transferData(transferDataByte_red)
+
+                println("re array size ${transferDataByte_red.size}${transferDataByte[0]}")
+                println("bl array size ${transferDataByte.size}${transferDataByte[0]}")
+                try {
+
+                        usbController.transferState.value = true
+                        usbController.transferData(transferDataByte)
+                        Thread.sleep(100)
+                        usbController.transferData(transferDataByte_red)
+                        usbController.transferState.value = false
+                        println("red transferd")
+
+
+                } catch (e: Exception) {
+                    println("sleep miss ${e}")
+                }
+
             }
         }
     }

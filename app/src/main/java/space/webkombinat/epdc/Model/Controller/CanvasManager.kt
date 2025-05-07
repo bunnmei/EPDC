@@ -113,7 +113,7 @@ class CanvasManager(
                 if (px >= 0 && px < bitmap_buf.width && py >= 0 && py < bitmap_buf.height) {
                     val colorObject = bitmap_buf[px, py]
                     //bitmapの色を取得
-                    val rr =  Color.red(colorObject)
+//                    val rr =  Color.red(colorObject)
                     val gg =  Color.green(colorObject)
 //                    val bb = Color.blue(colorObject)
 

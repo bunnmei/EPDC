@@ -17,7 +17,9 @@ val ACTION_USB_PERMISSION = "hogehoge"
 class UsbController {
 
     var connected = mutableStateOf(false)
+    var transferState = mutableStateOf(false)
 
+    var counter = 0
     var usbManager: UsbManager? = null
     var device: UsbDevice? = null
     var thread: Thread? = null
@@ -39,34 +41,29 @@ class UsbController {
         if (interFace != null && endpointOut != null && connection != null) {
             return true
         }
-
         return false
-
     }
     fun transferData(array: ByteArray){
+//        currentStatePrint()
+        println("data transferが呼び出されたよ")
+//        if (transferState.value && status()){
+//            return
+//        }
+//        transferState.value = true
+        println("array size ${array.size}")
         val packet_size_max = 64
         val time_out = 1000
 
-        thread = Thread {
-            processByteArrayInBulk(array, bulkSize = packet_size_max) { bulk ->
-//                println("処理中のbulkのサイズ: ${bulk.size}")
-                val ret =  connection?.bulkTransfer(endpointOut, bulk, bulk.size, time_out)
-                if (ret != null) {
-                    if(ret < 0){
-                        println("送信エラー")
-                    }
+        processByteArrayInBulk(array, bulkSize = packet_size_max) { bulk ->
+//            println("trasfer data ${bulk}")
+            val ret =  connection?.bulkTransfer(endpointOut, bulk, bulk.size, time_out)
+            if (ret != null) {
+                if(ret < 0){
+                    println("送信エラー")
                 }
             }
-
-            try {
-                thread?.interrupt()
-                thread = null
-            } catch (e: Exception) {
-                println("thread stop で エラー${e}")
-            }
-
         }
-        thread!!.start()
+        println("送信終了")
     }
 
     fun setup() {
@@ -134,4 +131,13 @@ class UsbController {
         usbManager?.requestPermission(device, usbPermission)
     }
 
+    private fun currentStatePrint() {
+        println("interFace: ${interFace}")
+        println("connection: ${connection}")
+        println("endpointOut: ${endpointOut}")
+        println("device: ${device}")
+        println("usbManager: ${usbManager}")
+        println("thread: ${thread}")
+        println("transferState.value ${transferState.value}")
+    }
 }

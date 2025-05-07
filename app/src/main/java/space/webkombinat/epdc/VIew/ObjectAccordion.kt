@@ -24,8 +24,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import space.webkombinat.epdc.ViewModel.CanvasVM
 import space.webkombinat.epdc.ViewModel.OperateType
@@ -45,30 +48,43 @@ fun ObjectAccordion(
     vm: CanvasVM,
     click: (Int, OperateType, Color) -> Unit,
 ) {
+   val openList by vm.uiState.collectAsState()
 
-    var openList by remember { mutableStateOf(OperateType.Text) }
-
-    BoxWithConstraints {
-
+    BoxWithConstraints(modifier = modifier.background(Color.White)) {
         val maxWidthPx = with(LocalDensity.current) { maxWidth.toPx() }
         val targetWidthPx = maxWidthPx - with(LocalDensity.current) { (50*OperateType.entries.size).dp.toPx() }
         val targetWidthDp = with(LocalDensity.current) { targetWidthPx.toDp() }
 
         Row(
-            modifier = modifier.fillMaxSize()
+            modifier = modifier
+                .fillMaxSize()
         ) {
             OperateType.entries.forEach { type ->
-//                var expanded by remember { mutableStateOf(false) }
                 Row (
                     modifier.fillMaxHeight()
                         .width(50.dp)
-                        .background(Color.Gray)
+                        .background(MaterialTheme.colorScheme.secondaryContainer)
                         .clickable {
-                            openList = type
+                            vm.set_openList(type)
+                        },
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Column {
+                        Spacer(modifier = modifier.height(8.dp))
+                        when (type) {
+                            OperateType.Text -> {
+                                Text("${type.name}")
+                            }
+                            OperateType.Rect -> {
+                                Spacer(modifier = modifier.height(8.dp))
+                                Box(modifier = modifier.width(16.dp).height(16.dp).background(Color.Black))
+                            }
                         }
-                ) {}
+                    }
+                }
+
                 AnimatedVisibility(
-                    visible = openList == type,
+                    visible = openList.selectSideList == type,
                     enter = expandHorizontally(
                         animationSpec = tween(durationMillis = 150)
                     ),
@@ -96,11 +112,11 @@ fun ObjectAccordion(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.Center
                                 ) {
-                                    Box(
-                                        modifier = modifier.height(16.dp)
-                                            .width(16.dp)
-                                            .background(item.color)
-                                    )
+                                    Text(
+                                        text = "T",
+                                        fontFamily = FontFamily.Serif,
+                                        color = item.color
+                                        )
                                     Spacer(modifier = modifier.width(8.dp))
                                     Text("${item.text} - ${item.id}")
                                 }

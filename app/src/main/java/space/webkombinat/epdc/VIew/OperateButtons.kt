@@ -5,10 +5,12 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DocumentScanner
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Scanner
 import androidx.compose.material.icons.filled.Usb
 import androidx.compose.material.icons.filled.UsbOff
@@ -31,13 +33,11 @@ fun OperateButtons(
 ) {
     val ctx = LocalContext.current
     Row(
-        modifier = Modifier.height(66.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.height(66.dp).fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        BasicButton(
-            icon = Pair(Icons.Default.DocumentScanner, "convert to 296*128"),
-            click = click
-        )
+
         if(vm.usbController.connected.value == false) {
             BasicButton(
                 icon = Pair(Icons.Filled.UsbOff, "usb setup"),
@@ -46,9 +46,20 @@ fun OperateButtons(
         } else {
             BasicButton(
                 icon = Pair(Icons.Filled.Usb, "usb data transfer"),
-                click = {vm.usbDataTransfer()}
+                click = {vm.usbDataTransfer()},
+                enabled = !vm.usbController.transferState.value
             )
         }
+
+        BasicButton(
+            icon = Pair(Icons.Default.Download, "save edited data"),
+            click = {}
+        )
+
+        BasicButton(
+            icon = Pair(Icons.Default.DocumentScanner, "convert to 296*128"),
+            click = {click()}
+        )
     }
 }
 
@@ -57,6 +68,7 @@ fun BasicButton(
     modifier: Modifier = Modifier,
     icon: Pair<ImageVector, String>,
     click: () -> Unit,
+    enabled: Boolean = true
 ) {
     Row(
         modifier = modifier.fillMaxHeight(),
@@ -65,7 +77,8 @@ fun BasicButton(
     ) {
         Spacer(modifier = Modifier.width(8.dp))
         Button(
-            onClick = click,
+            enabled = enabled,
+            onClick = {click()},
             contentPadding = PaddingValues(0.dp),
             modifier = Modifier
                 .width(50.dp)

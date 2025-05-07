@@ -91,10 +91,7 @@ fun EDPCanvas(
                         .width((canvas_width * 3).dp)
                         .height((canvas_height * 3).dp)
                         .offset(x =  mask_width.dp, y =  mask_width.dp)
-                        .background(Color.White.copy(0.0f))
-//                        .drawWithContent() {
-//
-//                        }
+                        .background(Color.White)
                 ) {
                     draw()
                 }

@@ -140,16 +140,25 @@ class MainActivity : ComponentActivity() {
                     )
 
                     SystemBroadcastReceiver { intent ->
-                        if (intent?.action == ACTION_USB_PERMISSION) {
-                            val manager = ctx.getSystemService(USB_SERVICE) as? UsbManager
-                            if (manager!!.deviceList.isNotEmpty()) {
-                                val device = manager.deviceList?.values?.first()
-                                val hasPermission = manager.hasPermission(device)
-                                if (hasPermission) {
-                                    canvasVM.usbCommunicationSetup()
+                        when (intent?.action) {
+                            ACTION_USB_PERMISSION -> {
+                                val manager = ctx.getSystemService(USB_SERVICE) as? UsbManager
+                                if (manager!!.deviceList.isNotEmpty()) {
+                                    val device = manager.deviceList?.values?.first()
+                                    val hasPermission = manager.hasPermission(device)
+                                    if (hasPermission) {
+                                        canvasVM.usbCommunicationSetup()
+                                    }
                                 }
                             }
+                            UsbManager.ACTION_USB_DEVICE_ATTACHED -> {
+                                println("接続された")
+                            }
+                            UsbManager.ACTION_USB_DEVICE_DETACHED -> {
+                                println("切断された")
+                            }
                         }
+
                     }
                     NavHost(
                         navController = navController,
@@ -206,6 +215,9 @@ class MainActivity : ComponentActivity() {
 //                                            center = Offset(x = 0f, y = 0f),
 //                                            style = Stroke(width = 5f)
 //                                        )
+                                            drawRect(
+                                                color = Color.White
+                                            )
                                             canvasVM.text_items.forEach { item ->
                                                 if (canvasVM.uiState.value.selectTab == item.colorMode) {
                                                     when (item.colorMode) {
@@ -252,6 +264,9 @@ class MainActivity : ComponentActivity() {
                                             top = true,
                                             vm = canvasVM
                                         ) {
+                                            drawRect(
+                                                color = Color.White
+                                            )
                                             tabList.forEach { item ->
                                                 when (item) {
                                                     ColorMode.Black -> {
@@ -361,7 +376,6 @@ class MainActivity : ComponentActivity() {
                                             vm = canvasVM
                                         )
                                     }
-
                                 }
 
                             }
