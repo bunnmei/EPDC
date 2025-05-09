@@ -16,11 +16,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.IgnoredOnParcel
-import kotlinx.parcelize.RawValue
 import space.webkombinat.epdc.Model.CanvasObjects.RectData
 import space.webkombinat.epdc.Model.Controller.CanvasManager
 import space.webkombinat.epdc.Model.CanvasObjects.TextDate
-import space.webkombinat.epdc.Model.ColorSet
 import space.webkombinat.epdc.Model.Controller.FontFolderReader
 import space.webkombinat.epdc.Model.Controller.UsbController
 import javax.inject.Inject
@@ -234,7 +232,6 @@ class CanvasVM @Inject constructor(
             size_h = 50,
             size_w = 50,
             degree = 0,
-            color = 1,
             colorMode = uiState.value.selectTab
         )
         val updatedRectItems = uiState.value.rectItems + newRect

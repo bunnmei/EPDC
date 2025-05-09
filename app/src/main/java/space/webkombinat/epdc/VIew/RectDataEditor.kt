@@ -9,7 +9,6 @@ import space.webkombinat.epdc.ViewModel.CanvasVM
 import space.webkombinat.epdc.ViewModel.Parameter_Sign
 import space.webkombinat.epdc.ViewModel.Rect_Parameter
 
-
 @Composable
 fun RectDataEditor(
     modifier: Modifier = Modifier,

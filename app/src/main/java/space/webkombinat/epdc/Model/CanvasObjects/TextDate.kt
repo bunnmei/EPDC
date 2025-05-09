@@ -1,9 +1,7 @@
 package space.webkombinat.epdc.Model.CanvasObjects
 
 import android.os.Parcelable
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 import space.webkombinat.epdc.ViewModel.ColorMode
 
 @Parcelize

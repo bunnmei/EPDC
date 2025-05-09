@@ -1,43 +1,27 @@
 package space.webkombinat.epdc
 
-import android.R
-import android.content.res.Resources
 import android.graphics.Rect
 import android.hardware.usb.UsbManager
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Button
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Scanner
-import androidx.compose.material.icons.filled.Usb
-import androidx.compose.material.icons.filled.UsbOff
-import androidx.compose.material3.Divider
-import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -81,6 +65,7 @@ import space.webkombinat.epdc.VIew.CanvasDraw.Canvas_rect
 import space.webkombinat.epdc.VIew.CanvasDraw.Canvas_text
 import space.webkombinat.epdc.VIew.CanvasTab
 import space.webkombinat.epdc.VIew.EDPCanvas
+import space.webkombinat.epdc.VIew.List.ListScreen
 import space.webkombinat.epdc.VIew.OperateBottomSheet
 import space.webkombinat.epdc.VIew.OperateButtons
 import space.webkombinat.epdc.VIew.Receiver.SystemBroadcastReceiver
@@ -163,7 +148,8 @@ class MainActivity : ComponentActivity() {
                     }
                     NavHost(
                         navController = navController,
-                        startDestination = BottomNavigation.Canvas.route,
+//                        startDestination = BottomNavigation.Canvas.route,
+                        startDestination = BottomNavigation.List.route,
                         modifier = Modifier.padding(innerPadding)
                     ) {
                         composable(
@@ -389,13 +375,7 @@ class MainActivity : ComponentActivity() {
                         composable(
                             route = BottomNavigation.List.route
                         ) {
-                            Column(
-                                modifier = Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text("ProjectList")
-                            }
+                            ListScreen()
                         }
                         // Keep Data List End
                         //setting Screen Start
