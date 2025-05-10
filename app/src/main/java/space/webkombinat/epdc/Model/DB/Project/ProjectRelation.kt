@@ -6,12 +6,12 @@ import space.webkombinat.epdc.Model.DB.Rect.RectEntity
 import space.webkombinat.epdc.Model.DB.Text.TextEntity
 
 data class ProjectRelation(
-    @Embedded val profile: ProjectEntity,
+    @Embedded
     val project: ProjectEntity,
 
-    @Relation(parentColumn = "id", entityColumn = "projectId")
-    val textItmes: List<TextEntity> = emptyList(),
+    @Relation(parentColumn = "id", entityColumn = "project_id_text")
+    val textItems: List<TextEntity> = emptyList(),
 
-    @Relation(parentColumn = "id", entityColumn = "projectId")
+    @Relation(parentColumn = "id", entityColumn = "project_id_rect")
     val rectItems: List<RectEntity> = emptyList()
 )

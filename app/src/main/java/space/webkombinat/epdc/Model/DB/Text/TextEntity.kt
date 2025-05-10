@@ -9,7 +9,7 @@ class TextEntity (
     @PrimaryKey(autoGenerate = true)
     val id: Long,
 
-    @ColumnInfo(name = "text")
+    @ColumnInfo(name = "project_id_text")
     val projectId: Long,
     var text: String,
     var x: Int,

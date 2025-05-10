@@ -9,7 +9,7 @@ data class RectEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long,
 
-    @ColumnInfo(name = "rect")
+    @ColumnInfo(name = "project_id_rect")
     val projectId: Long,
     var x: Int,
     var y: Int,

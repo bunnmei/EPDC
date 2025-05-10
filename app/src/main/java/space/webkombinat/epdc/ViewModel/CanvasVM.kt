@@ -21,6 +21,7 @@ import space.webkombinat.epdc.Model.Controller.CanvasManager
 import space.webkombinat.epdc.Model.CanvasObjects.TextDate
 import space.webkombinat.epdc.Model.Controller.FontFolderReader
 import space.webkombinat.epdc.Model.Controller.UsbController
+import space.webkombinat.epdc.Model.DB.Text.TextRepository
 import javax.inject.Inject
 
 @HiltViewModel
@@ -28,7 +29,10 @@ class CanvasVM @Inject constructor(
     val canvasManager: CanvasManager,
     val usbController: UsbController,
     val fontFolderReader: FontFolderReader,
-    val savedStateHandle: SavedStateHandle
+    val savedStateHandle: SavedStateHandle,
+    val projectRepo: TextRepository,
+    val textRepo: TextRepository,
+    val rectRepo: TextRepository,
 ): ViewModel() {
 
     private val _uiState = savedStateHandle.getStateFlow("uiStateKey", UiState())
