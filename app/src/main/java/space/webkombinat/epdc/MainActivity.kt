@@ -75,6 +75,7 @@ import space.webkombinat.epdc.VIew.TextDataEditor
 import space.webkombinat.epdc.VIew.TopAppBar
 import space.webkombinat.epdc.ViewModel.CanvasVM
 import space.webkombinat.epdc.ViewModel.ColorMode
+import space.webkombinat.epdc.ViewModel.ListVM
 import space.webkombinat.epdc.ViewModel.OperateType
 import space.webkombinat.epdc.ui.theme.EPDCTheme
 
@@ -148,8 +149,8 @@ class MainActivity : ComponentActivity() {
                     }
                     NavHost(
                         navController = navController,
-//                        startDestination = BottomNavigation.Canvas.route,
-                        startDestination = BottomNavigation.List.route,
+                        startDestination = BottomNavigation.Canvas.route,
+//                        startDestination = BottomNavigation.List.route,
                         modifier = Modifier.padding(innerPadding)
                     ) {
                         composable(
@@ -375,7 +376,8 @@ class MainActivity : ComponentActivity() {
                         composable(
                             route = BottomNavigation.List.route
                         ) {
-                            ListScreen()
+                            val listVM = hiltViewModel<ListVM>()
+                            ListScreen(vm = listVM)
                         }
                         // Keep Data List End
                         //setting Screen Start

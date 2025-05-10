@@ -21,6 +21,10 @@ import space.webkombinat.epdc.Model.Controller.CanvasManager
 import space.webkombinat.epdc.Model.CanvasObjects.TextDate
 import space.webkombinat.epdc.Model.Controller.FontFolderReader
 import space.webkombinat.epdc.Model.Controller.UsbController
+import space.webkombinat.epdc.Model.DB.Project.Project
+import space.webkombinat.epdc.Model.DB.Project.ProjectEntity
+import space.webkombinat.epdc.Model.DB.Project.ProjectRepository
+import space.webkombinat.epdc.Model.DB.Rect.RectRepository
 import space.webkombinat.epdc.Model.DB.Text.TextRepository
 import javax.inject.Inject
 
@@ -30,9 +34,9 @@ class CanvasVM @Inject constructor(
     val usbController: UsbController,
     val fontFolderReader: FontFolderReader,
     val savedStateHandle: SavedStateHandle,
-    val projectRepo: TextRepository,
+    val projectRepo: ProjectRepository,
     val textRepo: TextRepository,
-    val rectRepo: TextRepository,
+    val rectRepo: RectRepository,
 ): ViewModel() {
 
     private val _uiState = savedStateHandle.getStateFlow("uiStateKey", UiState())
@@ -349,6 +353,7 @@ class CanvasVM @Inject constructor(
             }
         }
     }
+
     fun changeFont(ctx: Context,fontName:String) {
         var font: String
         if (checkFont(fontName)) {
@@ -360,6 +365,25 @@ class CanvasVM @Inject constructor(
         val newData = currentData.copy(fontFamily = font)
         savedStateHandle["uiStateKey"] = uiState.value.copy(textItems = uiState.value.textItems
             .map { if (it.id == currentData.id) newData else it })
+    }
+
+    fun saveData() {
+
+        val newProject = ProjectEntity (
+            id = 0,
+            projectName = null,
+            createdAt = System.currentTimeMillis()
+        )
+        viewModelScope.launch {
+            val projectId = projectRepo.insertProject(newProject)
+
+            uiState.value.textItems.forEach { item ->
+                textRepo.insertText(item.toTextEntity(projectId))
+            }
+            uiState.value.rectItems.forEach { item ->
+                rectRepo.insertRect(item.toRectEntity(projectId))
+            }
+        }
     }
 }
 

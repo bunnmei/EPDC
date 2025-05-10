@@ -2,7 +2,9 @@ package space.webkombinat.epdc.Model.CanvasObjects
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
+import space.webkombinat.epdc.Model.DB.Text.TextEntity
 import space.webkombinat.epdc.ViewModel.ColorMode
+import space.webkombinat.epdc.Model.Constants
 
 @Parcelize
 data class TextDate(
@@ -14,4 +16,25 @@ data class TextDate(
     var fontWeight: Int,
     var fontFamily: String,
     var colorMode: ColorMode
-) : Parcelable
+) : Parcelable {
+
+    fun toTextEntity(id: Long): TextEntity =
+        TextEntity(
+            id = 0,
+            projectId = id,
+            text = text,
+            x = x,
+            y = y,
+            fontSize = fontSize,
+            fontWeight = fontWeight,
+            fontFamily = fontFamily,
+            colorMode = Constants.colorModeToInt(colorMode),
+        )
+
+//    fun colorModeToInt(colorMode: ColorMode): Int {
+//        return when (colorMode) {
+//            ColorMode.Black -> 1
+//            ColorMode.Red -> 2
+//        }
+//    }
+}

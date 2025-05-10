@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ProjectDao {
@@ -19,7 +20,7 @@ interface ProjectDao {
     suspend fun delete(project: ProjectEntity)
 
     @Query("SELECT * FROM project order by createdAt desc")
-    fun getAll(): List<ProjectEntity>
+    fun getAll(): Flow<List<ProjectEntity>>
 
     @Transaction
     @Query("SELECT * FROM project WHERE id = :id")

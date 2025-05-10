@@ -53,7 +53,9 @@ fun OperateButtons(
 
         BasicButton(
             icon = Pair(Icons.Default.Download, "save edited data"),
-            click = {}
+            click = {
+                vm.saveData()
+            }
         )
 
         BasicButton(
