@@ -19,11 +19,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -35,9 +38,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import space.webkombinat.epdc.Model.DB.Project.ProjectEntity
 import space.webkombinat.epdc.ViewModel.ListVM
 
 
@@ -48,19 +53,77 @@ fun ListScreen(
 ) {
 
     val projectLists by vm.projectList.collectAsState(initial = emptyList())
-    LazyColumn(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
+    val openEditDialog = remember { mutableStateOf(false) }
+    val editItem = remember { mutableStateOf<ProjectEntity?>(null) }
+    Box(
+        modifier = modifier.fillMaxSize(),
+
     ) {
-        items(projectLists.size) {
-            ListItem(
-                text ="${projectLists[it].projectName ?: "NoTitle"} - ${projectLists[it].id}",
-                delete = { vm.deleteProject(project = projectLists[it]) },
-                rename = {}
-            )
+        LazyColumn(
+            modifier = modifier,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            items(projectLists.size) {
+                ListItem(
+                    text ="${projectLists[it].projectName ?: "NoTitle"} - ${projectLists[it].id}",
+                    delete = { vm.deleteProject(project = projectLists[it]) },
+                    rename = {
+                        editItem.value = projectLists[it]
+                        openEditDialog.value = true
+                    }
+                )
+            }
+        }
+
+        if (openEditDialog.value) {
+            Box( // Mask
+                modifier = modifier.fillMaxSize()
+                    .background(Color.White.copy(alpha = 0.4f))
+                    .clickable {openEditDialog.value = false},
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(
+                    modifier = modifier.fillMaxWidth(0.8f)
+//                        .height(300.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(color = MaterialTheme.colorScheme.secondaryContainer)
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    if (editItem.value != null) {
+                        OutlinedTextField(
+                            value =
+                                if (editItem.value!!.projectName == null || editItem.value!!.projectName == "") {""}
+                                else {editItem.value!!.projectName.toString()},
+                            onValueChange = { newText ->
+                                editItem.value = editItem.value?.copy(projectName = newText)
+                            }
+                        )
+                        Spacer(modifier = modifier.height(16.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceAround
+                        ) {
+                            Button(onClick = {
+                                openEditDialog.value = false
+                                editItem.value = null
+                            }) {
+                                Text("キャンセル")
+                            }
+                            Button(onClick = {
+                                vm.updateProject(editItem.value!!)
+                                openEditDialog.value = false
+                                editItem.value = null
+                            }) {
+                                Text("保存")
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
-
 }
 
 @Composable

@@ -15,6 +15,12 @@ class ListVM @Inject constructor(
 ): ViewModel() {
     val projectList = projectRepo.getAll()
 
+    fun updateProject(project: ProjectEntity) {
+        viewModelScope.launch {
+            projectRepo.updateProject(project)
+        }
+    }
+
     fun deleteProject(project: ProjectEntity) {
         viewModelScope.launch {
             projectRepo.deleteProject(project)

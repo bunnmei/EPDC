@@ -14,6 +14,10 @@ class ProjectRepository @Inject constructor(
         return projectDao.create(project)
     }
 
+    suspend fun updateProject(project: ProjectEntity) {
+        projectDao.update(project)
+    }
+
     suspend fun deleteProject(project: ProjectEntity) {
         projectDao.delete(project)
         textDao.deleteByProjectId(project.id)
