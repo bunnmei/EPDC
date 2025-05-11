@@ -376,7 +376,7 @@ class CanvasVM @Inject constructor(
         )
         viewModelScope.launch {
             val projectId = projectRepo.insertProject(newProject)
-
+            println("保存されるID - ${projectId}")
             uiState.value.textItems.forEach { item ->
                 textRepo.insertText(item.toTextEntity(projectId))
             }

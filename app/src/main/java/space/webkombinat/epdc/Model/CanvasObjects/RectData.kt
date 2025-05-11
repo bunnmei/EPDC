@@ -17,9 +17,9 @@ data class RectData(
     var degree: Int,
     var colorMode: ColorMode
 ) : Parcelable {
-    fun toRectEntity(id: Long): RectEntity = RectEntity(
+    fun toRectEntity(projectId: Long): RectEntity = RectEntity(
         id = 0,
-        projectId = id,
+        projectId = projectId,
         x = x,
         y = y,
         size_w = size_w,

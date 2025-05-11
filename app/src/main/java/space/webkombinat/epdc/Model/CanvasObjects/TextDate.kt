@@ -18,10 +18,10 @@ data class TextDate(
     var colorMode: ColorMode
 ) : Parcelable {
 
-    fun toTextEntity(id: Long): TextEntity =
+    fun toTextEntity(projectId: Long): TextEntity =
         TextEntity(
             id = 0,
-            projectId = id,
+            projectId = projectId,
             text = text,
             x = x,
             y = y,
