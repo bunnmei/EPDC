@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,6 +41,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import space.webkombinat.epdc.Model.BottomNavigation
 import space.webkombinat.epdc.Model.DB.Project.ProjectEntity
+import space.webkombinat.epdc.VIew.BottomFloatingButton
 import space.webkombinat.epdc.ViewModel.ListVM
 
 
@@ -72,30 +74,24 @@ fun ListScreen(
 //                    navController.navigate("canvas/${projectLists[it].id}")
                     onClick()
                     navController.navigate(BottomNavigation.Canvas.route){
-//                        vm.saveProjectId(projectLists[it].id)
-//                        navController.currentBackStackEntry?.savedStateHandle?.set("arg", projectLists[it].id)
                         vm.saveProjectId(projectLists[it].id)
                         popUpTo(navController.graph.findStartDestination().id) {
                             saveState = true
                         }
                         launchSingleTop = true
                         restoreState = true
-//                        println("navigate id ::: ${navController.graph.findStartDestination().id}")
-//                        popUpTo(BottomNavigation.Canvas.route) {
-//                            inclusive = true
-//                        }
-//                        launchSingleTop = true
-//                        restoreState = false
                     }
 
                 }
             }
+
+            item { Spacer(modifier = modifier.height((60 + 16 + 16).dp)) }
         }
 
         if (openEditDialog.value) {
             Box( // Mask
                 modifier = modifier.fillMaxSize()
-                    .background(Color.White.copy(alpha = 0.4f))
+                    .background(Color.Black.copy(alpha = 0.4f))
                     .clickable {openEditDialog.value = false},
                 contentAlignment = Alignment.Center,
             ) {
@@ -140,6 +136,23 @@ fun ListScreen(
                 }
             }
         }
+
+        Column {
+            Spacer(modifier = modifier.weight(1f))
+            BottomFloatingButton {
+                onClick()
+                navController.navigate(BottomNavigation.Canvas.route){
+                    vm.saveProjectId()
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
+        }
+
+
     }
 }
 

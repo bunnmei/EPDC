@@ -18,7 +18,7 @@ class ListVM @Inject constructor(
 ): ViewModel() {
     val projectList = projectRepo.getAll()
 
-    fun saveProjectId(id: Long) {
+    fun saveProjectId(id: Long? = null) {
         currentEditData.selectProject(id)
     }
     fun updateProject(project: ProjectEntity) {

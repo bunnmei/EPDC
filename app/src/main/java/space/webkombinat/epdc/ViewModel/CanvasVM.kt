@@ -26,6 +26,7 @@ import space.webkombinat.epdc.Model.DB.Project.ProjectEntity
 import space.webkombinat.epdc.Model.DB.Project.ProjectRepository
 import space.webkombinat.epdc.Model.DB.Rect.RectRepository
 import space.webkombinat.epdc.Model.DB.Text.TextRepository
+import space.webkombinat.epdc.ViewModel.Room_Data
 import javax.inject.Inject
 
 @HiltViewModel
@@ -43,8 +44,6 @@ class CanvasVM @Inject constructor(
     private val _uiState = savedStateHandle.getStateFlow("uiStateKey", UiState())
     val uiState: StateFlow<UiState> = _uiState
 
-    private val projectID = savedStateHandle.getStateFlow<Long?>("arg", null)
-
     var black_previewPixelList =  mutableStateListOf<Int>()
     var red_previewPixelList = mutableStateListOf<Int>()
     var usbButtonState = mutableStateOf(true)
@@ -59,45 +58,44 @@ class CanvasVM @Inject constructor(
         val operateType: OperateType = OperateType.Text,
         val operateIndex: Int = 0,
         val textItems: List<TextDate> = emptyList(),
-        val rectItems: List<RectData> = emptyList()
+        val rectItems: List<RectData> = emptyList(),
+        val roomData: Room_Data = Room_Data.NULL
     ): Parcelable
 
     init {
         viewModelScope.launch {
             currentEditData.selectedProjectId.collect { it ->
                 println("idがへんこうされました。ListVM")
-                val longId = it
-                println("longId $longId")
-                if (longId != null){
-                    val project = projectRepo.getProjectById(longId)
-                    println(if (project != null) "project is not null" else "project is null")
-                    if (project != null) {
-                        println("project is -- ${project.textItems.size}")
-                        var counter = 0
-                        var textItems = mutableListOf<TextDate>()
-                        var rectItems = mutableListOf<RectData>()
-                        project.textItems.forEachIndexed { _, textData ->
-                            textItems.add(textData.toTextDate(num = textData.id))
-                            counter++
-                        }
-                        project.rectItems.forEachIndexed { _, rectData ->
-                            rectItems.add(rectData.toRectDate(num = rectData.id))
-                            counter++
-                        }
-                        if (textItems.isNotEmpty()) {
-                            println("textItems is not empty ${textItems[0].text}")
-                        }
-                        val newUiState = UiState().copy(
-                            projectId = longId,
-                            itemCounter = counter,
-                            rectItems = rectItems,
-                            textItems = textItems,
-                            operateIndex = counter
-                        )
-                        savedStateHandle["uiStateKey"] = newUiState
-                    }
+                if(it != null) {
+                    reLoad(id = it)
+                } else {
+                    savedStateHandle["uiStateKey"] = UiState()
                 }
+
             }
+        }
+    }
+
+    suspend fun reLoad(id: Long) {
+        val project = projectRepo.getProjectById(id)
+        if (project != null) {
+            var textItems = mutableListOf<TextDate>()
+            var rectItems = mutableListOf<RectData>()
+            project.textItems.forEachIndexed { _, textData ->
+                textItems.add(textData.toTextDate(num = textData.id))
+            }
+            project.rectItems.forEachIndexed { _, rectData ->
+                rectItems.add(rectData.toRectDate(num = rectData.id))
+            }
+
+            val newUiState = UiState().copy(
+                projectId = id,
+                rectItems = rectItems,
+                textItems = textItems,
+                operateIndex = textItems.size,
+                roomData = Room_Data.OK
+            )
+            savedStateHandle["uiStateKey"] = newUiState
         }
     }
 
@@ -235,7 +233,7 @@ class CanvasVM @Inject constructor(
     fun addText() {
         addItemCounter()
         var newText = TextDate(
-            id = uiState.value.itemCounter.toLong(),
+            id = uiState.value.itemCounter.toLong()* -1,
             text = "dammy",
             x = 0,
             y = 0,
@@ -248,7 +246,8 @@ class CanvasVM @Inject constructor(
         savedStateHandle["uiStateKey"] =
             uiState.value.copy(
                 textItems = updatedTextItems,
-                operateType = OperateType.Text
+                operateType = OperateType.Text,
+                roomData = Room_Data.UNSAVED
             )
         setOperateIndex(uiState.value.textItems.size)
     }
@@ -256,11 +255,19 @@ class CanvasVM @Inject constructor(
         val currentData = uiState.value.textItems[uiState.value.operateIndex-1]
         val newData = currentData.copy(text = newText)
         val updateTextItems = uiState.value.textItems.map { if (it.id == currentData.id) newData else it }
-        savedStateHandle["uiStateKey"] = uiState.value.copy(textItems = updateTextItems)
+        savedStateHandle["uiStateKey"] = uiState.value.copy(textItems = updateTextItems, roomData = Room_Data.UNSAVED)
     }
 
     fun removeText(targetId: Long){
         val updatedTextItems = uiState.value.textItems.filter { it.id != targetId }
+        if (targetId >= 0) {
+            viewModelScope.launch {
+                val deleteText = uiState.value.textItems.find { it.id == targetId }
+                if (deleteText != null){
+                    textRepo.deleteText(deleteText.toTextEntity(itemId = deleteText.id, projectId = uiState.value.projectId) )
+                }
+            }
+        }
         val length = updatedTextItems.size-1
         if (length > 0){
             setOperateIndex(length)
@@ -268,13 +275,18 @@ class CanvasVM @Inject constructor(
             setOperateIndex(1)
         }
         setOperateType(OperateType.Text)
-        savedStateHandle["uiStateKey"] = uiState.value.copy(textItems = updatedTextItems)
+        val newUiState = if(uiState.value.textItems.size == 0 || uiState.value.rectItems.size == 0) {
+            uiState.value.copy(textItems = updatedTextItems, roomData = Room_Data.NULL)
+        } else {
+            uiState.value.copy(textItems = updatedTextItems)
+        }
+        savedStateHandle["uiStateKey"] = newUiState
     }
 
     fun addRect() {
         addItemCounter()
         val newRect = RectData(
-            id = uiState.value.itemCounter.toLong(),
+            id = uiState.value.itemCounter.toLong()* -1,
             x = 0,
             y = 0,
             size_h = 50,
@@ -286,13 +298,22 @@ class CanvasVM @Inject constructor(
         savedStateHandle["uiStateKey"] =
             uiState.value.copy(
                 rectItems = updatedRectItems,
-                operateType = OperateType.Rect
+                operateType = OperateType.Rect,
+                roomData = Room_Data.UNSAVED
             )
         setOperateIndex(uiState.value.rectItems.size)
     }
 
     fun removeRect(targetId: Long) {
         val updatedRectItems = uiState.value.rectItems.filter { it.id != targetId }
+        if (targetId >= 0) {
+            viewModelScope.launch {
+                val deleteRect = uiState.value.rectItems.find { it.id == targetId }
+                if (deleteRect != null){
+                    rectRepo.deleteRect(deleteRect.toRectEntity(itemId = deleteRect.id, projectId = uiState.value.projectId) )
+                }
+            }
+        }
         val length = updatedRectItems.size-1
         if (length > 0){
             setOperateIndex(length)
@@ -300,7 +321,12 @@ class CanvasVM @Inject constructor(
             setOperateIndex(1)
         }
         setOperateType(OperateType.Rect)
-        savedStateHandle["uiStateKey"] = uiState.value.copy(rectItems = updatedRectItems)
+        val newUiState = if(uiState.value.textItems.size == 0 || uiState.value.rectItems.size == 0) {
+            uiState.value.copy(rectItems = updatedRectItems, roomData = Room_Data.NULL)
+        } else {
+            uiState.value.copy(rectItems = updatedRectItems)
+        }
+        savedStateHandle["uiStateKey"] = newUiState
     }
 
     fun rectParameterUpdate(
@@ -320,7 +346,7 @@ class CanvasVM @Inject constructor(
             Rect_Parameter.DEGREE -> currentData.copy(degree = updateFunction(currentData.degree))
         }
         val updateRectItems = uiState.value.rectItems.map { if (it.id == currentData.id) newData else it }
-        savedStateHandle["uiStateKey"] = uiState.value.copy(rectItems = updateRectItems)
+        savedStateHandle["uiStateKey"] = uiState.value.copy(rectItems = updateRectItems,roomData = Room_Data.UNSAVED)
     }
 
     fun textParameterUpdate(
@@ -347,7 +373,7 @@ class CanvasVM @Inject constructor(
         }
 
         val updateTextItems = uiState.value.textItems.map { if (it.id == currentData.id) newData else it }
-        savedStateHandle["uiStateKey"] = uiState.value.copy(textItems = updateTextItems)
+        savedStateHandle["uiStateKey"] = uiState.value.copy(textItems = updateTextItems,roomData = Room_Data.UNSAVED)
     }
 
     private fun getIncrementText(parameter: Text_Parameter): Int = when (parameter) {
@@ -413,22 +439,39 @@ class CanvasVM @Inject constructor(
         }
         return false
     }
-
+    fun ok() {
+        currentEditData.selectProject(uiState.value.projectId)
+        viewModelScope.launch {
+            reLoad(id = currentEditData.selectedProjectId.value!!)
+            savedStateHandle["uiStateKey"] = uiState.value.copy(roomData = Room_Data.OK)
+        }
+    }
     fun saveData() {
         if (checkAlreadyProject()) {
+            savedStateHandle["uiStateKey"] = uiState.value.copy(roomData = Room_Data.UPDATING)
             println("updateのスコープに入ったよ")
             if(uiState.value.textItems.isNotEmpty()){
                 println("textItems is not empty ${uiState.value.textItems[0].fontSize} item id ${uiState.value.textItems[0].id}")
             }
             viewModelScope.launch {
                 uiState.value.textItems.forEach { item ->
-                    textRepo.updateText(item.toTextEntity(itemId = item.id, projectId = uiState.value.projectId))
+                    if(item.id < 0) {
+                        textRepo.insertText(item.toTextEntity(projectId = uiState.value.projectId))
+                    } else {
+                        textRepo.updateText(item.toTextEntity(itemId = item.id, projectId = uiState.value.projectId))
+                    }
                 }
                 uiState.value.rectItems.forEach { item ->
-                    rectRepo.updateRect(item.toRectEntity(itemId = item.id, projectId = uiState.value.projectId))
+                    if(item.id < 0) {
+                        rectRepo.insertRect(item.toRectEntity(projectId = uiState.value.projectId))
+                    } else {
+                        rectRepo.updateRect(item.toRectEntity(itemId = item.id, projectId = uiState.value.projectId))
+                    }
                 }
+                savedStateHandle["uiStateKey"] = uiState.value.copy(roomData = Room_Data.UPDATED)
             }
         } else {
+            savedStateHandle["uiStateKey"] = uiState.value.copy(roomData = Room_Data.SAVING)
             val newProject = ProjectEntity (
                 id = 0,
                 projectName = null,
@@ -443,10 +486,12 @@ class CanvasVM @Inject constructor(
                 uiState.value.rectItems.forEach { item ->
                     rectRepo.insertRect(item.toRectEntity(projectId = projectId))
                 }
+                savedStateHandle["uiStateKey"] = uiState.value.copy(roomData = Room_Data.SAVED, projectId = projectId)
             }
         }
     }
 }
+
 
 sealed class ColorMode: Parcelable  {
     @Parcelize
@@ -488,6 +533,16 @@ enum class Rect_Parameter {
     WIDTH,
     HEIGHT,
     DEGREE
+}
+
+enum class Room_Data {
+    NULL,
+    UNSAVED,
+    UPDATING,
+    UPDATED,
+    SAVING,
+    SAVED,
+    OK,
 }
 
 enum class Parameter_Sign {

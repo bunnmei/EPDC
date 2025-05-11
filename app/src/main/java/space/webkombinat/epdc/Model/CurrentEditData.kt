@@ -8,8 +8,7 @@ class CurrentEditData @Inject constructor() {
     private val _selectedProjectId = MutableStateFlow<Long?>(null)
     val selectedProjectId: StateFlow<Long?> = _selectedProjectId
 
-    fun selectProject(id: Long) {
+    fun selectProject(id: Long?) {
         _selectedProjectId.value = id
     }
-
 }

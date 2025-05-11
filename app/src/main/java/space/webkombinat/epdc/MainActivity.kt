@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -30,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -83,6 +86,7 @@ import space.webkombinat.epdc.ViewModel.CanvasVM
 import space.webkombinat.epdc.ViewModel.ColorMode
 import space.webkombinat.epdc.ViewModel.ListVM
 import space.webkombinat.epdc.ViewModel.OperateType
+import space.webkombinat.epdc.ViewModel.Room_Data
 import space.webkombinat.epdc.ui.theme.EPDCTheme
 
 @AndroidEntryPoint
@@ -120,7 +124,6 @@ class MainActivity : ComponentActivity() {
                                 println("build navig ${backStackEntry.value?.destination?.route}")
                                 popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true
-//                                    inclusive = true
                                 }
                                 launchSingleTop = true
                                 restoreState = true
@@ -176,7 +179,7 @@ class MainActivity : ComponentActivity() {
                             )
                             val arg = backStackEntry.arguments?.getLong("arg")
                             println("arg $arg")
-                            val uiState = canvasVM.uiState.collectAsState()
+                            val uiState by canvasVM.uiState.collectAsState()
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -225,8 +228,8 @@ class MainActivity : ComponentActivity() {
                                             drawRect(
                                                 color = Color.White
                                             )
-                                            uiState.value.textItems.forEach { item ->
-                                                if (uiState.value.selectTab == item.colorMode) {
+                                            uiState.textItems.forEach { item ->
+                                                if (uiState.selectTab == item.colorMode) {
                                                     when (item.colorMode) {
                                                         ColorMode.Black -> {
                                                             Canvas_text(
@@ -249,8 +252,8 @@ class MainActivity : ComponentActivity() {
                                                 }
                                             }
 
-                                            uiState.value.rectItems.forEach { item ->
-                                                if (canvasVM.uiState.value.selectTab == item.colorMode) {
+                                            uiState.rectItems.forEach { item ->
+                                                if (uiState.selectTab == item.colorMode) {
                                                     when (item.colorMode) {
                                                         ColorMode.Black -> {
                                                             Canvas_rect(
@@ -299,7 +302,9 @@ class MainActivity : ComponentActivity() {
                                             }
                                         }
 
-                                        OperateButtons(vm = canvasVM) {
+                                        OperateButtons(
+                                            vm = canvasVM,
+                                        ) {
                                             captureArea.value?.let { rect ->
                                                 canvasVM.convert(
                                                     rect = rect,
@@ -313,11 +318,63 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
                                 }
+                                if (
+                                    uiState.roomData == Room_Data.SAVING ||
+                                    uiState.roomData == Room_Data.UPDATING ||
+                                    uiState.roomData == Room_Data.SAVED ||
+                                    uiState.roomData == Room_Data.UPDATED
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(Color.Black.copy(alpha = 0.4f))
+//                                            .clickable {}
+                                            ,
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Column(
+                                            modifier = Modifier
+                                                .padding(16.dp)
+                                                .fillMaxWidth(fraction = 0.8f)
+                                                .clip(RoundedCornerShape(16.dp))
+                                                .background(Color.White)
+                                                .clickable {
+                                                    println("hogehoge")
+                                                }
+                                            ,
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                        ) {
+                                            Text(
+                                                text = when(uiState.roomData) {
+                                                    Room_Data.UPDATING -> "データの更新中"
+                                                    Room_Data.UPDATED -> "データのアップデート完了"
+                                                    Room_Data.SAVING -> "データの保存中"
+                                                    Room_Data.SAVED -> "データの保存完了"
+                                                    else -> ""
+                                                }
+                                            )
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            Button(
+                                                onClick = {
+                                                    canvasVM.ok()
+                                                },
+                                                enabled =
+                                                    if(uiState.roomData == Room_Data.SAVED || uiState.roomData == Room_Data.UPDATED)
+                                                        true
+                                                    else
+                                                        false
+                                            ) {
+                                                Text("OK")
+                                            }
+                                        }
+                                    }
+                                }
+
                                 if (addOpenDialog.value) {
                                     Box(
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .background(Color.Gray.copy(alpha = 0.8f))
+                                            .background(Color.Black.copy(alpha = 0.4f))
                                             .clickable {
                                                 addOpenDialog.value = false
                                             },
@@ -377,12 +434,12 @@ class MainActivity : ComponentActivity() {
                                     showBottomSheet = showBottomSheet
                                 ) {
 //                                    val mode = canvasVM.operate_data_type.value
-                                    if (uiState.value.textItems.isNotEmpty() && uiState.value.operateType == OperateType.Text) {
+                                    if (uiState.textItems.isNotEmpty() && uiState.operateType == OperateType.Text) {
                                         TextDataEditor(
                                             vm = canvasVM
                                         )
                                     }
-                                    if (uiState.value.rectItems.isNotEmpty() && uiState.value.operateType == OperateType.Rect) {
+                                    if (uiState.rectItems.isNotEmpty() && uiState.operateType == OperateType.Rect) {
                                         RectDataEditor(
                                             vm = canvasVM
                                         )
