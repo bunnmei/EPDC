@@ -1,5 +1,8 @@
 package space.webkombinat.epdc.Model.DB.Text
 
+import space.webkombinat.epdc.Model.CanvasObjects.TextDate
+import space.webkombinat.epdc.Model.Constants
+
 data class Text(
     val id: Long,
     val projectId: Long,

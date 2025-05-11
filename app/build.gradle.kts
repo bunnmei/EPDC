@@ -79,4 +79,7 @@ dependencies {
     implementation (libs.androidx.datastore.preferences)
 
     implementation(libs.lifecycle.viewmodel.savedstate)
+
+    //serialize
+//    implementation(libs.kotlinx.serialization.json)
 }

@@ -46,7 +46,7 @@ import space.webkombinat.epdc.ViewModel.OperateType
 fun ObjectAccordion(
     modifier: Modifier = Modifier,
     vm: CanvasVM,
-    click: (Int, OperateType, Color) -> Unit,
+    click: (Long, OperateType, Color) -> Unit,
 ) {
    val uiState by vm.uiState.collectAsState()
 

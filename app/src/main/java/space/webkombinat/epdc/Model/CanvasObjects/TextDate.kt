@@ -8,7 +8,7 @@ import space.webkombinat.epdc.Model.Constants
 
 @Parcelize
 data class TextDate(
-    val id: Int,
+    val id: Long,
     var text: String,
     var x: Int,
     var y: Int,
@@ -18,9 +18,9 @@ data class TextDate(
     var colorMode: ColorMode
 ) : Parcelable {
 
-    fun toTextEntity(projectId: Long): TextEntity =
+    fun toTextEntity(itemId : Long = 0, projectId: Long): TextEntity =
         TextEntity(
-            id = 0,
+            id = itemId,
             projectId = projectId,
             text = text,
             x = x,
@@ -30,6 +30,7 @@ data class TextDate(
             fontFamily = fontFamily,
             colorMode = Constants.colorModeToInt(colorMode),
         )
+
 
 //    fun colorModeToInt(colorMode: ColorMode): Int {
 //        return when (colorMode) {

@@ -23,9 +23,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -49,15 +51,19 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.drawToBitmap
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import androidx.room.util.copy
 import dagger.hilt.android.AndroidEntryPoint
+import jakarta.inject.Inject
 import space.webkombinat.epdc.Model.BottomNavigation
 import space.webkombinat.epdc.Model.ColorSet
 import space.webkombinat.epdc.Model.Controller.ACTION_USB_PERMISSION
+import space.webkombinat.epdc.Model.Controller.UsbController
 import space.webkombinat.epdc.VIew.BottomFloatingButton
 import space.webkombinat.epdc.VIew.BottomNavigationBar
 import space.webkombinat.epdc.VIew.CanvasDraw.CanvasPreview
@@ -81,6 +87,7 @@ import space.webkombinat.epdc.ui.theme.EPDCTheme
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject lateinit var usb: UsbController
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -94,6 +101,7 @@ class MainActivity : ComponentActivity() {
                 val captureArea = remember { mutableStateOf<Rect?>(null) }
                 val navController = rememberNavController()
                 val backStackEntry = navController.currentBackStackEntryAsState()
+                var selectedItem = rememberSaveable { mutableStateOf(0) }
 
                 val addOpenDialog = remember { mutableStateOf(false) }
                 val drawerState = remember { mutableStateOf(false) }
@@ -103,7 +111,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     bottomBar = {
                         BottomNavigationBar(
-                            navController = navController
+                            navController = navController,
+                            selectedItem = selectedItem
                         ){ bottom ->
                             navController.navigate(
                                 route = bottom.route,
@@ -111,6 +120,7 @@ class MainActivity : ComponentActivity() {
                                 println("build navig ${backStackEntry.value?.destination?.route}")
                                 popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true
+//                                    inclusive = true
                                 }
                                 launchSingleTop = true
                                 restoreState = true
@@ -119,12 +129,7 @@ class MainActivity : ComponentActivity() {
                     }
                 ) {
                     innerPadding ->
-                    val canvasVM = hiltViewModel<CanvasVM>()
-                    val (canvasWidth, canvasHeight, maskSize) = canvasVM.getScreenSize(ctx = ctx)
-                    val tabList = listOf(
-                        ColorMode.Black,
-                        ColorMode.Red,
-                    )
+
 
                     SystemBroadcastReceiver { intent ->
                         when (intent?.action) {
@@ -134,7 +139,7 @@ class MainActivity : ComponentActivity() {
                                     val device = manager.deviceList?.values?.first()
                                     val hasPermission = manager.hasPermission(device)
                                     if (hasPermission) {
-                                        canvasVM.usbCommunicationSetup()
+                                        usb.setup()
                                     }
                                 }
                             }
@@ -153,9 +158,24 @@ class MainActivity : ComponentActivity() {
 //                        startDestination = BottomNavigation.List.route,
                         modifier = Modifier.padding(innerPadding)
                     ) {
+
                         composable(
-                            route = BottomNavigation.Canvas.route
-                        ){
+                            route = BottomNavigation.Canvas.route,
+//                            arguments = listOf(
+//                                navArgument("arg") {
+//                                    type = NavType.StringType
+//                                    nullable = true
+//                                }
+//                            )
+                        ){ backStackEntry ->
+                            val canvasVM = hiltViewModel<CanvasVM>()
+                            val (canvasWidth, canvasHeight, maskSize) = canvasVM.getScreenSize(ctx = ctx)
+                            val tabList = listOf(
+                                ColorMode.Black,
+                                ColorMode.Red,
+                            )
+                            val arg = backStackEntry.arguments?.getLong("arg")
+                            println("arg $arg")
                             val uiState = canvasVM.uiState.collectAsState()
                             Box(
                                 modifier = Modifier
@@ -377,7 +397,12 @@ class MainActivity : ComponentActivity() {
                             route = BottomNavigation.List.route
                         ) {
                             val listVM = hiltViewModel<ListVM>()
-                            ListScreen(vm = listVM)
+                            ListScreen(
+                                vm = listVM,
+                                navController = navController
+                            ) {
+                                selectedItem.value = 0
+                            }
                         }
                         // Keep Data List End
                         //setting Screen Start

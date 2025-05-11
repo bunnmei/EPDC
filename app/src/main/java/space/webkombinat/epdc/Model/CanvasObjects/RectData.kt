@@ -9,7 +9,7 @@ import space.webkombinat.epdc.ViewModel.ColorMode
 
 @Parcelize
 data class RectData(
-    val id: Int,
+    val id: Long,
     var x: Int,
     var y: Int,
     var size_w: Int,
@@ -17,8 +17,8 @@ data class RectData(
     var degree: Int,
     var colorMode: ColorMode
 ) : Parcelable {
-    fun toRectEntity(projectId: Long): RectEntity = RectEntity(
-        id = 0,
+    fun toRectEntity(itemId : Long = 0, projectId: Long): RectEntity = RectEntity(
+        id = itemId,
         projectId = projectId,
         x = x,
         y = y,

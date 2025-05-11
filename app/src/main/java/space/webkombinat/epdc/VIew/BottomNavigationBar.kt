@@ -7,6 +7,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -21,6 +22,7 @@ import space.webkombinat.epdc.Model.BottomNavigation
 @Composable
 fun BottomNavigationBar(
     navController: NavController,
+    selectedItem: MutableState<Int>,
     items: List<BottomNavigation> = listOf(
         BottomNavigation.Canvas,
         BottomNavigation.List,
@@ -28,7 +30,7 @@ fun BottomNavigationBar(
     ),
     onItemClick: (BottomNavigation) -> Unit
 ) {
-    var selectedItem by rememberSaveable { mutableStateOf(0) }
+
     val backStackEntry = navController.currentBackStackEntryAsState()
 
     NavigationBar(
@@ -36,9 +38,9 @@ fun BottomNavigationBar(
     ) {
         items.forEachIndexed { index, item ->
             NavigationBarItem(
-                selected = selectedItem == index,
+                selected = selectedItem.value == index,
                 onClick = {
-                    selectedItem = index
+                    selectedItem.value = index
                     onItemClick(item)
                 },
                 icon = {

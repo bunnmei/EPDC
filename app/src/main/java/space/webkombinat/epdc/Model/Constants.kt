@@ -9,4 +9,12 @@ object Constants {
             ColorMode.Red -> 2
         }
     }
+
+    fun  intToColorMode(color: Int): ColorMode {
+        return when (color) {
+            1 -> ColorMode.Black
+            2 -> ColorMode.Red
+            else -> ColorMode.Black
+        }
+    }
 }

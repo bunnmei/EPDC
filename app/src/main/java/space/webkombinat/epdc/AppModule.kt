@@ -10,6 +10,7 @@ import androidx.room.Room
 import space.webkombinat.epdc.Model.Controller.CanvasManager
 import space.webkombinat.epdc.Model.Controller.FontFolderReader
 import space.webkombinat.epdc.Model.Controller.UsbController
+import space.webkombinat.epdc.Model.CurrentEditData
 import space.webkombinat.epdc.Model.DB.Project.ProjectDao
 import space.webkombinat.epdc.Model.DB.ProjectDatabase
 import space.webkombinat.epdc.Model.DB.Rect.RectDao
@@ -32,6 +33,7 @@ object AppModule{
     }
 
     @Provides
+    @Singleton
     fun provideUsbController(): UsbController {
         return UsbController()
     }
@@ -43,6 +45,13 @@ object AppModule{
         return fontFolderReader
     }
 
+    @Provides
+    @Singleton
+    fun provideCurrentEditData(): CurrentEditData {
+        return CurrentEditData()
+    }
+
+    //db
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): ProjectDatabase {

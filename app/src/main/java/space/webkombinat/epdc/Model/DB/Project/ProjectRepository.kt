@@ -27,4 +27,8 @@ class ProjectRepository @Inject constructor(
     fun getAll(): Flow<List<ProjectEntity>> {
         return projectDao.getAll()
     }
+
+    suspend fun getProjectById(id: Long): ProjectRelation? {
+        return projectDao.profileAndTextAndRect(id = id)
+    }
 }
