@@ -39,6 +39,7 @@ object AppModule{
     }
 
     @Provides
+    @Singleton
     fun provideFontFolderReader(@ApplicationContext context: Context): FontFolderReader {
         val fontFolderReader: FontFolderReader = FontFolderReader()
         fontFolderReader.createFontFolder(ctx = context)

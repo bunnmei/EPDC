@@ -99,6 +99,10 @@ class CanvasVM @Inject constructor(
         }
     }
 
+    fun fontReload(ctx: Context) {
+        fontFolderReader.createFontFolder(ctx = ctx)
+    }
+
     fun set_openList(mode: OperateType) {
         val newData =  _uiState.value.copy(selectSideList = mode)
         savedStateHandle["uiStateKey"] = newData
@@ -142,7 +146,7 @@ class CanvasVM @Inject constructor(
                     if(transferDataByte.size == 4736 && transferDataByte_red.size == 4736) {
                         try {
                             usbController.transferData(transferDataByte)
-                            Thread.sleep(100)
+                            Thread.sleep(100) // pi pico のバッファが溢れないように
                             usbController.transferData(transferDataByte_red)
                             println("red transferd")
                             Thread.sleep(5000)

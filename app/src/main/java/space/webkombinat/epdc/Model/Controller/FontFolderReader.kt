@@ -1,6 +1,5 @@
 package space.webkombinat.epdc.Model.Controller
 
-import android.R
 import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
@@ -21,11 +20,12 @@ class FontFolderReader() {
     )
     var font_list = mutableStateListOf<String>()
 
-    fun createFontFolder(ctx: Context) {
+    fun createFontFolder(ctx: Context): File {
         val appSpecificExternalDir = File(ctx.getExternalFilesDir(null), folderName)
         if (!appSpecificExternalDir.exists()) {
             if (appSpecificExternalDir.mkdirs()) {
                 Log.d("MyApp", "フォルダを作成しました: ${appSpecificExternalDir.absolutePath} (Compose)")
+                createFontFileList(file = appSpecificExternalDir)
             } else {
                 Log.e("MyApp", "フォルダの作成に失敗しました。 (Compose)")
             }
@@ -33,6 +33,7 @@ class FontFolderReader() {
             Log.d("MyApp", "フォルダは既に存在します: ${appSpecificExternalDir.absolutePath} (Compose)")
             createFontFileList(file = appSpecificExternalDir)
         }
+        return appSpecificExternalDir
     }
 
     fun FontFolderReload(ctx: Context) {

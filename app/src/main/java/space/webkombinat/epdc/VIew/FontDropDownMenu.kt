@@ -43,7 +43,7 @@ fun FontDropDownMenu(
     ) {
         Text(uiState.textItems[uiState.operateIndex-1].fontFamily)
         IconButton(onClick = {
-//            vm.fontListGet(ctx = ctx)
+            vm.fontReload(ctx = ctx)
             println("font size ${vm.fontFolderReader.font_list.size}")
             expanded = !expanded
         }) {

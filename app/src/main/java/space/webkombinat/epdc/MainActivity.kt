@@ -1,5 +1,7 @@
 package space.webkombinat.epdc
 
+import android.app.Activity
+import android.content.Intent
 import android.graphics.Rect
 import android.hardware.usb.UsbManager
 import android.os.Bundle
@@ -75,6 +77,7 @@ import space.webkombinat.epdc.VIew.CanvasDraw.Canvas_text
 import space.webkombinat.epdc.VIew.CanvasTab
 import space.webkombinat.epdc.VIew.EDPCanvas
 import space.webkombinat.epdc.VIew.List.ListScreen
+import space.webkombinat.epdc.VIew.List.SettingsScreen
 import space.webkombinat.epdc.VIew.OperateBottomSheet
 import space.webkombinat.epdc.VIew.OperateButtons
 import space.webkombinat.epdc.VIew.Receiver.SystemBroadcastReceiver
@@ -87,7 +90,9 @@ import space.webkombinat.epdc.ViewModel.ColorMode
 import space.webkombinat.epdc.ViewModel.ListVM
 import space.webkombinat.epdc.ViewModel.OperateType
 import space.webkombinat.epdc.ViewModel.Room_Data
+import space.webkombinat.epdc.ViewModel.SettingsVM
 import space.webkombinat.epdc.ui.theme.EPDCTheme
+import java.io.File
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -466,13 +471,8 @@ class MainActivity : ComponentActivity() {
                         composable(
                             route = BottomNavigation.Settings.route
                         ) {
-                            Column(
-                                modifier = Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text("Settings")
-                            }
+                            val settingsVM = hiltViewModel<SettingsVM>()
+                            SettingsScreen(vm = settingsVM)
                         }
                         //setting Screen End
                     }
@@ -480,6 +480,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
 }
 
 //@Composable
