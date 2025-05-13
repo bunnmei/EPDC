@@ -6,8 +6,8 @@ class TextRepository @Inject constructor(
     private val textDao: TextDao
 ) {
     suspend fun insertText(text: TextEntity): Long {
-        textDao.create(text)
-        return text.id
+
+        return textDao.create(text)
     }
 
     suspend fun updateText(text: TextEntity) {

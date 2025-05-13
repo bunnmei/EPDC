@@ -35,7 +35,7 @@ fun OperateButtons(
     Row(
         modifier = Modifier.height(66.dp).fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+//        horizontalArrangement = Arrangement.SpaceBetween
     ) {
 
         if(vm.usbController.connected.value == false) {
@@ -51,12 +51,13 @@ fun OperateButtons(
             )
         }
 
-        BasicButton(
-            icon = Pair(Icons.Default.Download, "save edited data"),
-            click = {
-                vm.saveData()
-            }
-        )
+        Spacer(modifier = modifier.weight(1f))
+//        BasicButton(
+//            icon = Pair(Icons.Default.Download, "save edited data"),
+//            click = {
+////                vm.saveData()
+//            }
+//        )
 
         BasicButton(
             icon = Pair(Icons.Default.DocumentScanner, "convert to 296*128"),

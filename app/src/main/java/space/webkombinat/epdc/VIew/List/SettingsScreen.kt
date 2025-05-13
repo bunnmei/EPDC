@@ -1,10 +1,7 @@
 package space.webkombinat.epdc.VIew.List
 
-import android.app.Activity
-import android.app.Application
 import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult
-import android.content.Intent
 import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.result.contract.ActivityResultContracts
@@ -39,29 +36,39 @@ fun SettingsScreen(
             if (uri != null) {
                 val fileName = getFileNameFromUri(ctx, uri)
                 println("filename: $fileName")
-                val inputStream = ctx.contentResolver.openInputStream(uri)
-                val targetFile = File(vm.getFontPath(ctx), fileName)
-                println("filepaht: ${targetFile.absolutePath}")
-                inputStream?.use { input ->
-                    targetFile.outputStream().use { output ->
-                        input.copyTo(output)
+                if (fileName.endsWith(".ttf", ignoreCase = true) == true) {
+                    val inputStream = ctx.contentResolver.openInputStream(uri)
+                    val targetFile = File(vm.getFontPath(ctx), fileName)
+                    println("filepaht: ${targetFile.absolutePath}")
+                    inputStream?.use { input ->
+                        targetFile.outputStream().use { output ->
+                            input.copyTo(output)
+                        }
                     }
                 }
             }
         }
     )
+//    var currentRange by remember { mutableStateOf(0f) }
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
+//        Slider(
+//            enabled = true,
+//            valueRange = 0f..100f,
+//            value = currentRange,
+//            onValueChange = {
+//                currentRange = it
+//            },
+//            steps = 10
+//        )
         Text(
             text = "Font",
             fontSize = 12.sp,
-//            modifier = modifier
-//                .padding(start = 16.dp, end = 16.dp, top = 16.dp),
-                   )
+        )
         Row(
             modifier = Modifier
                 .height(50.dp)
@@ -69,11 +76,7 @@ fun SettingsScreen(
         ) {
             Button(
                 onClick = {
-    //                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-    //                    addCategory(Intent.CATEGORY_OPENABLE)
-    //                    type = "*/*"
-    //                }
-                    filePickerLauncher.launch(arrayOf("*/ttf"))
+                    filePickerLauncher.launch(arrayOf("*/*"))
                 }
             ) {
                 Text("フォントインポート .ttf")
@@ -82,38 +85,23 @@ fun SettingsScreen(
         Text(
             text = "FontFilePath",
             fontSize = 12.sp,
-//            modifier = modifier
-//                .padding(start = 16.dp, end = 16.dp, top = 16.dp),
         )
         Text(
-            text = "FontPath /storage/emulated/0/Android/data/space.webkombinat.epdc/files/fonts"
+            text = vm.getFontPath(ctx),
         )
     }
-//    Column {
-//        Button(
-//            onClick = {
-////                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-////                    addCategory(Intent.CATEGORY_OPENABLE)
-////                    type = "*/*"
-////                }
-//                filePickerLauncher.launch(arrayOf("*/*"))
-//            }
-//        ) {
-//            Text("Fontをインポート")
-//        }
-//    }
-
 }
-    fun getFileNameFromUri(context: Context, uri: Uri): String {
-        var result = "imported_file"
-        val cursor = context.contentResolver.query(uri, null, null, null, null)
-        cursor?.use {
-            if (it.moveToFirst()) {
-                val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                if (nameIndex != -1) {
-                    result = it.getString(nameIndex)
-                }
+
+fun getFileNameFromUri(context: Context, uri: Uri): String {
+    var result = "imported_file"
+    val cursor = context.contentResolver.query(uri, null, null, null, null)
+    cursor?.use {
+        if (it.moveToFirst()) {
+            val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+            if (nameIndex != -1) {
+                result = it.getString(nameIndex)
             }
         }
-        return result
     }
+    return result
+}
