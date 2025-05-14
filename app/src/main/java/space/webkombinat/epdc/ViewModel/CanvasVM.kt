@@ -44,7 +44,7 @@ class CanvasVM @Inject constructor(
     private val _uiState = savedStateHandle.getStateFlow("uiStateKey", UiState())
     val uiState: StateFlow<UiState> = _uiState
 
-    var black_previewPixelList =  mutableStateListOf<Int>()
+    var black_previewPixelList = mutableStateListOf<Int>()
     var red_previewPixelList = mutableStateListOf<Int>()
     var usbButtonState = mutableStateOf(true)
     var convertButtonState = mutableStateOf(true)
@@ -60,16 +60,16 @@ class CanvasVM @Inject constructor(
         val textItems: List<TextDate> = emptyList(),
         val rectItems: List<RectData> = emptyList(),
         val roomData: Room_Data = Room_Data.NULL
-    ): Parcelable
+    ) : Parcelable
 
     init {
         viewModelScope.launch {
             currentEditData.selectedProjectId.collect { it ->
-                if(it != null) {
+                if (it != null) {
                     println("idがへんこうされました。ListVM")
                     reLoad(id = it)
                 } else {
-                    val newProject = ProjectEntity (
+                    val newProject = ProjectEntity(
                         id = 0,
                         projectName = null,
                         createdAt = System.currentTimeMillis()
@@ -93,7 +93,6 @@ class CanvasVM @Inject constructor(
             project.rectItems.forEachIndexed { _, rectData ->
                 rectItems.add(rectData.toRectDate(num = rectData.id))
             }
-
             val newUiState = UiState().copy(
                 projectId = id,
                 rectItems = rectItems,
@@ -110,21 +109,16 @@ class CanvasVM @Inject constructor(
     }
 
     fun set_openList(mode: OperateType) {
-        val newData =  _uiState.value.copy(selectSideList = mode)
+        val newData = uiState.value.copy(selectSideList = mode)
         savedStateHandle["uiStateKey"] = newData
     }
 
     fun setTabMode(mode: ColorMode) {
-        val newData =  _uiState.value.copy(selectTab = mode)
+        val newData = _uiState.value.copy(selectTab = mode)
         savedStateHandle["uiStateKey"] = newData
     }
 
-    fun addItemCounter() {
-        val newData =  _uiState.value.copy(itemCounter = _uiState.value.itemCounter + 1)
-        savedStateHandle["uiStateKey"] = newData
-    }
-
-    fun getScreenSize(ctx: Context): Triple<Int, Int, Int>{
+    fun getScreenSize(ctx: Context): Triple<Int, Int, Int> {
         val canvasWidth = pxToDp(canvasManager.virual_EPD_W, ctx)
         val canvasHeight = pxToDp(canvasManager.virual_EPD_H, ctx)
         val maskSize = pxToDp(
@@ -137,19 +131,22 @@ class CanvasVM @Inject constructor(
     fun usbConnectionSetup(ctx: Context) {
         usbController.getDevice(ctx = ctx)
     }
+
     fun usbDataTransfer() {
         if (usbButtonState.value) {
             usbButtonState.value = false
-            val th = Thread{
+            val th = Thread {
                 if (black_previewPixelList.isNotEmpty() && red_previewPixelList.isNotEmpty()) {
-                    val transferDataByte = canvasManager.listIntToByteArrayDirect(black_previewPixelList)
+                    val transferDataByte =
+                        canvasManager.listIntToByteArrayDirect(black_previewPixelList)
 
                     val convertZeroToOne = canvasManager.redZeroToOne(red_previewPixelList)
-                    val transferDataByte_red = canvasManager.listIntToByteArrayDirect(convertZeroToOne)
+                    val transferDataByte_red =
+                        canvasManager.listIntToByteArrayDirect(convertZeroToOne)
 
                     println("re array size ${transferDataByte_red.size}${transferDataByte[0]}")
                     println("bl array size ${transferDataByte.size}${transferDataByte[0]}")
-                    if(transferDataByte.size == 4736 && transferDataByte_red.size == 4736) {
+                    if (transferDataByte.size == 4736 && transferDataByte_red.size == 4736) {
                         try {
                             usbController.transferData(transferDataByte)
                             Thread.sleep(100) // pi pico のバッファが溢れないように
@@ -175,14 +172,14 @@ class CanvasVM @Inject constructor(
     fun convert(bitmap: Bitmap, rect: Rect) {
         convertButtonState.value = false
         val newBitmap = Bitmap.createBitmap(
-                bitmap,
-                rect.left,
-                rect.top,
-                rect.width(),
-                rect.height()
+            bitmap,
+            rect.left,
+            rect.top,
+            rect.width(),
+            rect.height()
         )
 //        println("newBitmap width = ${newBitmap.width} height = ${newBitmap.height}")
-        when(_uiState.value.selectTab) {
+        when (_uiState.value.selectTab) {
             ColorMode.Black -> {
                 black_previewPixelList.clear()
                 viewModelScope.launch {
@@ -192,6 +189,7 @@ class CanvasVM @Inject constructor(
                     convertButtonState.value = true
                 }
             }
+
             ColorMode.Red -> {
                 red_previewPixelList.clear()
                 viewModelScope.launch {
@@ -206,30 +204,33 @@ class CanvasVM @Inject constructor(
     }
 
     fun setOperateType(mode: OperateType) {
-        val newData =  _uiState.value.copy(operateType = mode)
+        val newData = _uiState.value.copy(operateType = mode)
         savedStateHandle["uiStateKey"] = newData
     }
+
     fun setOperateIndex(index: Int) {
-        val newData =  _uiState.value.copy(operateIndex = index)
+        val newData = _uiState.value.copy(operateIndex = index)
         savedStateHandle["uiStateKey"] = newData
     }
+
     fun change(num: Long, operateType: OperateType) {
         setOperateType(mode = operateType)
-        when(operateType){
+        when (operateType) {
             OperateType.Text -> {
-                val i = uiState.value.textItems.indexOfFirst{ it.id == num }
+                val i = uiState.value.textItems.indexOfFirst { it.id == num }
                 println("i == ${i} , ${num}")
                 if (i >= 0) {
-                    setOperateIndex(index = i+1)
+                    setOperateIndex(index = i + 1)
                 } else {
                     println("存在しない要素がおされたよ ${num}")
                 }
             }
+
             OperateType.Rect -> {
-                val i = uiState.value.rectItems.indexOfFirst{ it.id == num }
+                val i = uiState.value.rectItems.indexOfFirst { it.id == num }
                 println("i == ${i} , ${num}")
                 if (i >= 0) {
-                    setOperateIndex(index = i+1)
+                    setOperateIndex(index = i + 1)
                 } else {
                     println("存在しない要素がおされたよ ${num}")
                 }
@@ -252,54 +253,68 @@ class CanvasVM @Inject constructor(
         )
 
         viewModelScope.launch {
-            val data = textRepo.insertText(newText.toTextEntity(projectId = currentEditData.selectedProjectId.value!!))
+            val data =
+                textRepo.insertText(newText.toTextEntity(projectId = currentEditData.selectedProjectId.value!!))
             println("data id ${data}")
             val textReturnRoom = newText.copy(id = data)
             println("data ${textReturnRoom.text}")
             savedStateHandle["uiStateKey"] = uiState.value.copy(
                 textItems = uiState.value.textItems + textReturnRoom,
                 operateType = OperateType.Text,
-                operateIndex = uiState.value.textItems.size+1,
+                operateIndex = uiState.value.textItems.size + 1,
             )
         }
     }
+
     fun updateText(newText: String) {
-        val currentData = uiState.value.textItems[uiState.value.operateIndex-1]
+        val currentData = uiState.value.textItems[uiState.value.operateIndex - 1]
         val newData = currentData.copy(text = newText)
-        val updateTextItems = uiState.value.textItems.map { if (it.id == currentData.id) newData else it }
+        val updateTextItems =
+            uiState.value.textItems.map { if (it.id == currentData.id) newData else it }
         viewModelScope.launch {
-            textRepo.updateText(newData.toTextEntity(itemId = newData.id, projectId = uiState.value.projectId))
-            savedStateHandle["uiStateKey"] = uiState.value.copy(textItems = updateTextItems, roomData = Room_Data.UNSAVED)
+            textRepo.updateText(
+                newData.toTextEntity(
+                    itemId = newData.id,
+                    projectId = uiState.value.projectId
+                )
+            )
         }
+        savedStateHandle["uiStateKey"] =
+            uiState.value.copy(textItems = updateTextItems, roomData = Room_Data.UNSAVED)
     }
 
-    fun removeText(targetId: Long){
+    fun removeText(targetId: Long) {
         val updatedTextItems = uiState.value.textItems.filter { it.id != targetId }
         if (targetId >= 0) {
             viewModelScope.launch {
                 val deleteText = uiState.value.textItems.find { it.id == targetId }
-                if (deleteText != null){
-                    textRepo.deleteText(deleteText.toTextEntity(itemId = deleteText.id, projectId = uiState.value.projectId) )
+                if (deleteText != null) {
+                    textRepo.deleteText(
+                        deleteText.toTextEntity(
+                            itemId = deleteText.id,
+                            projectId = uiState.value.projectId
+                        )
+                    )
                 }
             }
         }
-        val length = updatedTextItems.size-1
-        if (length > 0){
+        val length = updatedTextItems.size - 1
+        if (length > 0) {
             setOperateIndex(length)
         } else {
             setOperateIndex(1)
         }
         setOperateType(OperateType.Text)
-        val newUiState = if(uiState.value.textItems.size == 0 || uiState.value.rectItems.size == 0) {
-            uiState.value.copy(textItems = updatedTextItems, roomData = Room_Data.NULL)
-        } else {
-            uiState.value.copy(textItems = updatedTextItems)
-        }
+        val newUiState =
+            if (uiState.value.textItems.size == 0 || uiState.value.rectItems.size == 0) {
+                uiState.value.copy(textItems = updatedTextItems, roomData = Room_Data.NULL)
+            } else {
+                uiState.value.copy(textItems = updatedTextItems)
+            }
         savedStateHandle["uiStateKey"] = newUiState
     }
 
     fun addRect() {
-        addItemCounter()
         val newRect = RectData(
             id = 0,
             x = 0,
@@ -310,12 +325,13 @@ class CanvasVM @Inject constructor(
             colorMode = uiState.value.selectTab
         )
         viewModelScope.launch {
-            val data = rectRepo.insertRect(newRect.toRectEntity(projectId = currentEditData.selectedProjectId.value!!))
+            val data =
+                rectRepo.insertRect(newRect.toRectEntity(projectId = currentEditData.selectedProjectId.value!!))
             val rectReturnRoom = newRect.copy(id = data)
             savedStateHandle["uiStateKey"] = uiState.value.copy(
                 rectItems = uiState.value.rectItems + rectReturnRoom,
                 operateType = OperateType.Rect,
-                operateIndex = uiState.value.rectItems.size+1,
+                operateIndex = uiState.value.rectItems.size + 1,
             )
         }
     }
@@ -325,23 +341,29 @@ class CanvasVM @Inject constructor(
         if (targetId >= 0) {
             viewModelScope.launch {
                 val deleteRect = uiState.value.rectItems.find { it.id == targetId }
-                if (deleteRect != null){
-                    rectRepo.deleteRect(deleteRect.toRectEntity(itemId = deleteRect.id, projectId = uiState.value.projectId) )
+                if (deleteRect != null) {
+                    rectRepo.deleteRect(
+                        deleteRect.toRectEntity(
+                            itemId = deleteRect.id,
+                            projectId = uiState.value.projectId
+                        )
+                    )
                 }
             }
         }
-        val length = updatedRectItems.size-1
-        if (length > 0){
+        val length = updatedRectItems.size - 1
+        if (length > 0) {
             setOperateIndex(length)
         } else {
             setOperateIndex(1)
         }
         setOperateType(OperateType.Rect)
-        val newUiState = if(uiState.value.textItems.size == 0 || uiState.value.rectItems.size == 0) {
-            uiState.value.copy(rectItems = updatedRectItems, roomData = Room_Data.NULL)
-        } else {
-            uiState.value.copy(rectItems = updatedRectItems)
-        }
+        val newUiState =
+            if (uiState.value.textItems.size == 0 || uiState.value.rectItems.size == 0) {
+                uiState.value.copy(rectItems = updatedRectItems, roomData = Room_Data.NULL)
+            } else {
+                uiState.value.copy(rectItems = updatedRectItems)
+            }
         savedStateHandle["uiStateKey"] = newUiState
     }
 
@@ -349,8 +371,8 @@ class CanvasVM @Inject constructor(
         updateParameter: Rect_Parameter,
         sign: Parameter_Sign
     ) {
-        val currentData = uiState.value.rectItems[uiState.value.operateIndex-1]
-        val updateFunction: (Int) -> Int = when(sign) {
+        val currentData = uiState.value.rectItems[uiState.value.operateIndex - 1]
+        val updateFunction: (Int) -> Int = when (sign) {
             Parameter_Sign.Plus -> { value -> value + getIncrementRect(updateParameter) }
             Parameter_Sign.Minus -> { value -> value - getIncrementRect(updateParameter) }
         }
@@ -358,44 +380,59 @@ class CanvasVM @Inject constructor(
             Rect_Parameter.X -> currentData.copy(x = updateFunction(currentData.x))
             Rect_Parameter.Y -> currentData.copy(y = updateFunction(currentData.y))
             Rect_Parameter.WIDTH -> currentData.copy(size_w = updateFunction(currentData.size_w))
-            Rect_Parameter.HEIGHT ->  currentData.copy(size_h = updateFunction(currentData.size_h))
+            Rect_Parameter.HEIGHT -> currentData.copy(size_h = updateFunction(currentData.size_h))
             Rect_Parameter.DEGREE -> currentData.copy(degree = updateFunction(currentData.degree))
         }
-        val updateRectItems = uiState.value.rectItems.map { if (it.id == currentData.id) newData else it }
+        val updateRectItems =
+            uiState.value.rectItems.map { if (it.id == currentData.id) newData else it }
         viewModelScope.launch {
-            rectRepo.updateRect(newData.toRectEntity(itemId = newData.id, projectId = uiState.value.projectId))
+            rectRepo.updateRect(
+                newData.toRectEntity(
+                    itemId = newData.id,
+                    projectId = uiState.value.projectId
+                )
+            )
         }
-        savedStateHandle["uiStateKey"] = uiState.value.copy(rectItems = updateRectItems,roomData = Room_Data.UNSAVED)
+        savedStateHandle["uiStateKey"] =
+            uiState.value.copy(rectItems = updateRectItems, roomData = Room_Data.UNSAVED)
     }
 
     fun textParameterUpdate(
         updateParameter: Text_Parameter,
         sign: Parameter_Sign
     ) {
-        val currentData = uiState.value.textItems[uiState.value.operateIndex-1]
-        val updateFunction: (Int) -> Int = when(sign) {
+        val currentData = uiState.value.textItems[uiState.value.operateIndex - 1]
+        val updateFunction: (Int) -> Int = when (sign) {
             Parameter_Sign.Plus -> { value -> value + getIncrementText(updateParameter) }
             Parameter_Sign.Minus -> { value -> value - getIncrementText(updateParameter) }
         }
         val newData = when (updateParameter) {
             Text_Parameter.Weight -> {
                 val newValue = updateFunction(currentData.fontWeight)
-                if (newValue in 200 .. 900) { // Weight範囲チェック
+                if (newValue in 200..1000) { // Weight範囲チェック
                     currentData.copy(fontWeight = newValue)
                 } else {
                     return
                 }
             }
+
             Text_Parameter.Size -> currentData.copy(fontSize = updateFunction(currentData.fontSize))
             Text_Parameter.X -> currentData.copy(x = updateFunction(currentData.x))
             Text_Parameter.Y -> currentData.copy(y = updateFunction(currentData.y))
         }
 
-        val updateTextItems = uiState.value.textItems.map { if (it.id == currentData.id) newData else it }
+        val updateTextItems =
+            uiState.value.textItems.map { if (it.id == currentData.id) newData else it }
         viewModelScope.launch {
-            textRepo.updateText(newData.toTextEntity(itemId = newData.id, projectId = uiState.value.projectId))
+            textRepo.updateText(
+                newData.toTextEntity(
+                    itemId = newData.id,
+                    projectId = uiState.value.projectId
+                )
+            )
         }
-        savedStateHandle["uiStateKey"] = uiState.value.copy(textItems = updateTextItems,roomData = Room_Data.UNSAVED)
+        savedStateHandle["uiStateKey"] =
+            uiState.value.copy(textItems = updateTextItems, roomData = Room_Data.UNSAVED)
     }
 
     private fun getIncrementText(parameter: Text_Parameter): Int = when (parameter) {
@@ -414,13 +451,8 @@ class CanvasVM @Inject constructor(
     }
 
 
-    fun pxToDp(size: Int, ctx: Context): Int {
-        val density = ctx.resources.displayMetrics.density
-        return(size / density).toInt()
-    }
-
-    fun getFont(ctx: Context, fontName:String): FontFamily {
-        when(fontName) {
+    fun getFont(ctx: Context, fontName: String): FontFamily {
+        when (fontName) {
             FontFamily.Default.toString() -> return FontFamily.Default
             FontFamily.Monospace.toString() -> return FontFamily.Monospace
             FontFamily.Serif.toString() -> return FontFamily.Serif
@@ -430,8 +462,9 @@ class CanvasVM @Inject constructor(
             }
         }
     }
-    fun checkFont(fontName:String): Boolean {
-        return when(fontName) {
+
+    fun checkFont(fontName: String): Boolean {
+        return when (fontName) {
             FontFamily.Default.toString() -> true
             FontFamily.Monospace.toString() -> true
             FontFamily.Serif.toString() -> true
@@ -442,75 +475,37 @@ class CanvasVM @Inject constructor(
         }
     }
 
-    fun changeFont(ctx: Context,fontName:String) {
+    fun changeFont(ctx: Context, fontName: String) {
         var font: String
         if (checkFont(fontName)) {
             font = getFont(ctx, fontName).toString()
         } else {
             font = fontName
         }
-        val currentData = uiState.value.textItems[uiState.value.operateIndex-1]
+        val currentData = uiState.value.textItems[uiState.value.operateIndex - 1]
         val newData = currentData.copy(fontFamily = font)
-        savedStateHandle["uiStateKey"] = uiState.value.copy(textItems = uiState.value.textItems
-            .map { if (it.id == currentData.id) newData else it })
+        savedStateHandle["uiStateKey"] = uiState.value.copy(
+            textItems = uiState.value.textItems
+                .map { if (it.id == currentData.id) newData else it })
     }
 
     private fun checkAlreadyProject(): Boolean {
-        if(uiState.value.projectId >= 0) {
+        if (uiState.value.projectId >= 0) {
             return true
         }
         return false
     }
-    fun ok() {
-        currentEditData.selectProject(uiState.value.projectId)
-        viewModelScope.launch {
-            reLoad(id = currentEditData.selectedProjectId.value!!)
-            savedStateHandle["uiStateKey"] = uiState.value.copy(roomData = Room_Data.OK)
-        }
-    }
-    fun saveData() {
-        if (checkAlreadyProject()) {
-            savedStateHandle["uiStateKey"] = uiState.value.copy(roomData = Room_Data.UPDATING)
-            println("updateのスコープに入ったよ")
-            if(uiState.value.textItems.isNotEmpty()){
-                println("textItems is not empty ${uiState.value.textItems[0].fontSize} item id ${uiState.value.textItems[0].id}")
-            }
-            viewModelScope.launch {
-                uiState.value.textItems.forEach { item ->
-                    if(item.id < 0) {
-                        textRepo.insertText(item.toTextEntity(projectId = uiState.value.projectId))
-                    } else {
-                        textRepo.updateText(item.toTextEntity(itemId = item.id, projectId = uiState.value.projectId))
-                    }
-                }
-                uiState.value.rectItems.forEach { item ->
-                    if(item.id < 0) {
-                        rectRepo.insertRect(item.toRectEntity(projectId = uiState.value.projectId))
-                    } else {
-                        rectRepo.updateRect(item.toRectEntity(itemId = item.id, projectId = uiState.value.projectId))
-                    }
-                }
-                savedStateHandle["uiStateKey"] = uiState.value.copy(roomData = Room_Data.UPDATED)
-            }
-        } else {
-            savedStateHandle["uiStateKey"] = uiState.value.copy(roomData = Room_Data.SAVING)
-            val newProject = ProjectEntity (
-                id = 0,
-                projectName = null,
-                createdAt = System.currentTimeMillis()
-            )
-            viewModelScope.launch {
-                val projectId = projectRepo.insertProject(newProject)
-                println("保存されるID - ${projectId}")
-                uiState.value.textItems.forEach { item ->
-                    textRepo.insertText(item.toTextEntity(projectId = projectId))
-                }
-                uiState.value.rectItems.forEach { item ->
-                    rectRepo.insertRect(item.toRectEntity(projectId = projectId))
-                }
-                savedStateHandle["uiStateKey"] = uiState.value.copy(roomData = Room_Data.SAVED, projectId = projectId)
-            }
-        }
+//    fun ok() {
+//        currentEditData.selectProject(uiState.value.projectId)
+//        viewModelScope.launch {
+//            reLoad(id = currentEditData.selectedProjectId.value!!)
+//            savedStateHandle["uiStateKey"] = uiState.value.copy(roomData = Room_Data.OK)
+//        }
+//    }
+
+    fun pxToDp(size: Int, ctx: Context): Int {
+        val density = ctx.resources.displayMetrics.density
+        return (size / density).toInt()
     }
 }
 

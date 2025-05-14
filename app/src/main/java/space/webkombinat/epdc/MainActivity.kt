@@ -1,7 +1,5 @@
 package space.webkombinat.epdc
 
-import android.app.Activity
-import android.content.Intent
 import android.graphics.Rect
 import android.hardware.usb.UsbManager
 import android.os.Bundle
@@ -19,54 +17,33 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.drawText
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.drawToBitmap
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
-import androidx.room.util.copy
 import dagger.hilt.android.AndroidEntryPoint
 import jakarta.inject.Inject
 import space.webkombinat.epdc.Model.BottomNavigation
-import space.webkombinat.epdc.Model.ColorSet
 import space.webkombinat.epdc.Model.Controller.ACTION_USB_PERMISSION
 import space.webkombinat.epdc.Model.Controller.UsbController
 import space.webkombinat.epdc.VIew.BottomFloatingButton
@@ -76,12 +53,13 @@ import space.webkombinat.epdc.VIew.CanvasDraw.Canvas_rect
 import space.webkombinat.epdc.VIew.CanvasDraw.Canvas_text
 import space.webkombinat.epdc.VIew.CanvasTab
 import space.webkombinat.epdc.VIew.EDPCanvas
-import space.webkombinat.epdc.VIew.List.ListScreen
-import space.webkombinat.epdc.VIew.List.SettingsScreen
+import space.webkombinat.epdc.VIew.Screen.ListScreen
+import space.webkombinat.epdc.VIew.Screen.SettingsScreen
 import space.webkombinat.epdc.VIew.OperateBottomSheet
 import space.webkombinat.epdc.VIew.OperateButtons
 import space.webkombinat.epdc.VIew.Receiver.SystemBroadcastReceiver
 import space.webkombinat.epdc.VIew.RectDataEditor
+import space.webkombinat.epdc.VIew.Screen.CanvasScreen
 import space.webkombinat.epdc.VIew.SideObjectList
 import space.webkombinat.epdc.VIew.TextDataEditor
 import space.webkombinat.epdc.VIew.TopAppBar
@@ -89,10 +67,8 @@ import space.webkombinat.epdc.ViewModel.CanvasVM
 import space.webkombinat.epdc.ViewModel.ColorMode
 import space.webkombinat.epdc.ViewModel.ListVM
 import space.webkombinat.epdc.ViewModel.OperateType
-import space.webkombinat.epdc.ViewModel.Room_Data
 import space.webkombinat.epdc.ViewModel.SettingsVM
 import space.webkombinat.epdc.ui.theme.EPDCTheme
-import java.io.File
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -103,18 +79,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             EPDCTheme {
-                val view = LocalView.current
                 val ctx = LocalContext.current
-                val textMeasurer = rememberTextMeasurer()
-                val textMeasurer2 =  rememberTextMeasurer()
-                val captureArea = remember { mutableStateOf<Rect?>(null) }
                 val navController = rememberNavController()
                 val backStackEntry = navController.currentBackStackEntryAsState()
-                var selectedItem = rememberSaveable { mutableStateOf(0) }
-
-                val addOpenDialog = remember { mutableStateOf(false) }
-                val drawerState = remember { mutableStateOf(false) }
-                var showBottomSheet = remember { mutableStateOf(false) }
+                var selectedItem = rememberSaveable { mutableStateOf(1) }
 //                var prevbitmap: MutableState<ImageBitmap?> = remember { mutableStateOf(null) }
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
@@ -137,7 +105,6 @@ class MainActivity : ComponentActivity() {
                     }
                 ) {
                     innerPadding ->
-
 
                     SystemBroadcastReceiver { intent ->
                         when (intent?.action) {
@@ -162,299 +129,18 @@ class MainActivity : ComponentActivity() {
                     }
                     NavHost(
                         navController = navController,
-                        startDestination = BottomNavigation.Canvas.route,
-//                        startDestination = BottomNavigation.List.route,
+//                        startDestination = BottomNavigation.Canvas.route,
+                        startDestination = BottomNavigation.List.route,
                         modifier = Modifier.padding(innerPadding)
                     ) {
 
                         composable(
                             route = BottomNavigation.Canvas.route,
-//                            arguments = listOf(
-//                                navArgument("arg") {
-//                                    type = NavType.StringType
-//                                    nullable = true
-//                                }
-//                            )
                         ){ backStackEntry ->
                             val canvasVM = hiltViewModel<CanvasVM>()
-                            val (canvasWidth, canvasHeight, maskSize) = canvasVM.getScreenSize(ctx = ctx)
-                            val tabList = listOf(
-                                ColorMode.Black,
-                                ColorMode.Red,
-                            )
-                            val arg = backStackEntry.arguments?.getLong("arg")
-                            println("arg $arg")
-                            val uiState by canvasVM.uiState.collectAsState()
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(Color.Cyan.copy(0.0f))
-                            ) {
-                                Column {
-                                    TopAppBar(
-                                        click = {
-                                            drawerState.value = !drawerState.value
-                                        },
-                                        click2 = {
-                                            showBottomSheet.value = true
-                                            drawerState.value = false
-                                        },
-                                        vm = canvasVM
-                                    )
-                                    SideObjectList(
-                                        drawerState = drawerState,
-                                        click = {
-                                            showBottomSheet.value = true
-                                            drawerState.value = false
-                                                },
-                                        vm = canvasVM,
-                                    ) {
-                                        CanvasTab(
-                                            tabList = tabList,
-                                            vm = canvasVM
-                                        )
-//                                  Edit Canvas Screen
-//                                        val font = FontFamily(Font(R.font.heaby))
-                                        EDPCanvas(
-                                            canvas_width = canvasWidth,
-                                            canvas_height = canvasHeight,
-                                            mask_width = maskSize,
-                                            top = false,
-                                            captureArea = captureArea,
-                                            indicator = true,
-                                            vm = canvasVM
-                                        ) {
-//                                        drawCircle(
-//                                            color = Color.Red,
-//                                            radius = 200f,
-//                                            center = Offset(x = 0f, y = 0f),
-//                                            style = Stroke(width = 5f)
-//                                        )
-                                            drawRect(
-                                                color = Color.White
-                                            )
-                                            uiState.textItems.forEach { item ->
-                                                if (uiState.selectTab == item.colorMode) {
-                                                    when (item.colorMode) {
-                                                        ColorMode.Black -> {
-                                                            Canvas_text(
-                                                                textMeasurer = textMeasurer,
-                                                                item = item,
-                                                                vm = canvasVM,
-                                                                ctx = ctx
-                                                            )
-                                                        }
-
-                                                        ColorMode.Red -> {
-                                                            Canvas_text(
-                                                                textMeasurer = textMeasurer2,
-                                                                item = item,
-                                                                vm = canvasVM,
-                                                                ctx = ctx
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            uiState.rectItems.forEach { item ->
-                                                if (uiState.selectTab == item.colorMode) {
-                                                    when (item.colorMode) {
-                                                        ColorMode.Black -> {
-                                                            Canvas_rect(
-                                                                item = item
-                                                            )
-                                                        }
-
-                                                        ColorMode.Red -> {
-                                                            Canvas_rect(
-                                                                item = item
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        // 296 * 128 EDPPreview
-                                        EDPCanvas(
-                                            canvas_width = canvasWidth,
-                                            canvas_height = canvasHeight,
-                                            mask_width = maskSize,
-                                            top = true,
-                                            vm = canvasVM
-                                        ) {
-                                            drawRect(
-                                                color = Color.White
-                                            )
-                                            tabList.forEach { item ->
-                                                when (item) {
-                                                    ColorMode.Black -> {
-                                                        CanvasPreview(
-                                                            list = canvasVM.black_previewPixelList,
-                                                            vm = canvasVM,
-                                                            color = item.color
-                                                        )
-                                                    }
-
-                                                    ColorMode.Red -> {
-                                                        CanvasPreview(
-                                                            list = canvasVM.red_previewPixelList,
-                                                            vm = canvasVM,
-                                                            color = item.color
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        OperateButtons(
-                                            vm = canvasVM,
-                                        ) {
-                                            captureArea.value?.let { rect ->
-                                                canvasVM.convert(
-                                                    rect = rect,
-                                                    bitmap = view.drawToBitmap(),
-                                                )
-                                            }
-                                        }
-                                        Spacer(modifier = Modifier.weight(1f))
-                                        BottomFloatingButton {
-                                            addOpenDialog.value = true
-                                        }
-                                    }
-                                }
-                                if (
-                                    uiState.roomData == Room_Data.SAVING ||
-                                    uiState.roomData == Room_Data.UPDATING ||
-                                    uiState.roomData == Room_Data.SAVED ||
-                                    uiState.roomData == Room_Data.UPDATED
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .background(Color.Black.copy(alpha = 0.4f))
-//                                            .clickable {}
-                                            ,
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Column(
-                                            modifier = Modifier
-                                                .padding(16.dp)
-                                                .fillMaxWidth(fraction = 0.8f)
-                                                .clip(RoundedCornerShape(16.dp))
-                                                .background(Color.White)
-                                                .clickable {
-                                                    println("hogehoge")
-                                                }
-                                            ,
-                                            horizontalAlignment = Alignment.CenterHorizontally,
-                                        ) {
-                                            Text(
-                                                text = when(uiState.roomData) {
-                                                    Room_Data.UPDATING -> "データの更新中"
-                                                    Room_Data.UPDATED -> "データのアップデート完了"
-                                                    Room_Data.SAVING -> "データの保存中"
-                                                    Room_Data.SAVED -> "データの保存完了"
-                                                    else -> ""
-                                                }
-                                            )
-                                            Spacer(modifier = Modifier.height(8.dp))
-                                            Button(
-                                                onClick = {
-                                                    canvasVM.ok()
-                                                },
-                                                enabled =
-                                                    if(uiState.roomData == Room_Data.SAVED || uiState.roomData == Room_Data.UPDATED)
-                                                        true
-                                                    else
-                                                        false
-                                            ) {
-                                                Text("OK")
-                                            }
-                                        }
-                                    }
-                                }
-
-                                if (addOpenDialog.value) {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .background(Color.Black.copy(alpha = 0.4f))
-                                            .clickable {
-                                                addOpenDialog.value = false
-                                            },
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Column(
-                                            modifier = Modifier
-                                                .fillMaxSize(fraction = 0.8f)
-                                                .background(Color.White)
-                                                .clickable {
-                                                    println("Dialogが押されたよ")
-                                                }
-                                        ) {
-                                            Row(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .height(60.dp)
-                                                    .background(Color.White)
-                                                    .clickable {
-                                                        addOpenDialog.value = false
-                                                        canvasVM.addText()
-                                                        showBottomSheet.value = true
-                                                    },
-                                                horizontalArrangement = Arrangement.Center,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Text(
-                                                    text = "Text",
-                                                    fontSize = 20.sp
-                                                )
-                                            }
-                                            HorizontalDivider()
-                                            Row(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .height(60.dp)
-                                                    .background(Color.White)
-                                                    .clickable {
-                                                        addOpenDialog.value = false
-                                                        canvasVM.addRect()
-                                                        showBottomSheet.value = true
-                                                    },
-                                                horizontalArrangement = Arrangement.Center,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Text(
-                                                    text = "Rect",
-                                                    fontSize = 20.sp
-                                                )
-                                            }
-                                            HorizontalDivider()
-                                        }
-                                    }
-                                }
-
-                                OperateBottomSheet(
-                                    showBottomSheet = showBottomSheet
-                                ) {
-//                                    val mode = canvasVM.operate_data_type.value
-                                    if (uiState.textItems.isNotEmpty() && uiState.operateType == OperateType.Text) {
-                                        TextDataEditor(
-                                            vm = canvasVM
-                                        )
-                                    }
-                                    if (uiState.rectItems.isNotEmpty() && uiState.operateType == OperateType.Rect) {
-                                        RectDataEditor(
-                                            vm = canvasVM
-                                        )
-                                    }
-                                }
-
-                            }
+                            CanvasScreen(vm = canvasVM)
                         }
 
-                        // Keep Data List Start
                         composable(
                             route = BottomNavigation.List.route
                         ) {
@@ -466,15 +152,14 @@ class MainActivity : ComponentActivity() {
                                 selectedItem.value = 0
                             }
                         }
-                        // Keep Data List End
-                        //setting Screen Start
+
                         composable(
                             route = BottomNavigation.Settings.route
                         ) {
                             val settingsVM = hiltViewModel<SettingsVM>()
                             SettingsScreen(vm = settingsVM)
                         }
-                        //setting Screen End
+
                     }
                 }
             }

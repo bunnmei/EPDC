@@ -1,5 +1,6 @@
-package space.webkombinat.epdc.VIew.List
+package space.webkombinat.epdc.VIew.Screen
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -7,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -43,7 +44,6 @@ import space.webkombinat.epdc.Model.BottomNavigation
 import space.webkombinat.epdc.Model.DB.Project.ProjectEntity
 import space.webkombinat.epdc.VIew.BottomFloatingButton
 import space.webkombinat.epdc.ViewModel.ListVM
-
 
 @Composable
 fun ListScreen(
@@ -55,6 +55,7 @@ fun ListScreen(
     val projectLists by vm.projectList.collectAsState(initial = emptyList())
     val openEditDialog = remember { mutableStateOf(false) }
     val editItem = remember { mutableStateOf<ProjectEntity?>(null) }
+    val ctx = LocalContext.current
     Box(
         modifier = modifier.fillMaxSize(),
     ) {
@@ -65,7 +66,13 @@ fun ListScreen(
             items(projectLists.size) {
                 ListItem(
                     text ="${projectLists[it].projectName ?: "NoTitle"} - ${projectLists[it].id}",
-                    delete = { vm.deleteProject(project = projectLists[it]) },
+                    delete = {
+                        if (projectLists[it].id == vm.currentEditData.selectedProjectId.value){
+                            Toast.makeText(ctx, "編集中のプロジェクトは削除できません", Toast.LENGTH_SHORT).show()
+                        } else {
+                            vm.deleteProject(project = projectLists[it])
+                        }
+                    },
                     rename = {
                         editItem.value = projectLists[it]
                         openEditDialog.value = true
@@ -210,6 +217,7 @@ fun ListItem(
                 )
                 DropdownMenuItem(
                     onClick = {
+
                         expanded = false
                         delete()
                     },

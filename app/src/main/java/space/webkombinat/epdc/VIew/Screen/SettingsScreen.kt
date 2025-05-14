@@ -1,4 +1,4 @@
-package space.webkombinat.epdc.VIew.List
+package space.webkombinat.epdc.VIew.Screen
 
 import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -22,7 +22,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import space.webkombinat.epdc.ViewModel.SettingsVM
 import java.io.File
-import kotlin.contracts.contract
 
 @Composable
 fun SettingsScreen(
